@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from urllib.parse import quote
-
 UN_LANGUAGES = ["Arabic", "Chinese", "English", "French", "Russian", "Spanish"]
 
 
@@ -54,35 +52,13 @@ def other_languages_keyboard(languages: list[str], step: str) -> dict:
     return {"inline_keyboard": rows}
 
 
-def _phone_deep_link(phone_number: str, full_name: str) -> str:
-    normalized_phone = "".join(
-        character for character in phone_number if character.isdigit() or character == "+"
-    )
-    encoded_name = quote(full_name)
-    return f"tg://resolve?phone={normalized_phone}&text=&profile&name={encoded_name}"
-
-
 def results_keyboard(
     current_page: int,
     total_pages: int,
-    people: list[object] | None = None,
 ) -> dict:
     rows: list[list[dict]] = [
         [{"text": f"Page {current_page} of {total_pages}", "callback_data": "page-status"}]
     ]
-    if people:
-        for person in people:
-            phone = getattr(person, "phone", "")
-            full_name = getattr(person, "full_name", "Contact")
-            if phone:
-                rows.append(
-                    [
-                        {
-                            "text": f"Call {full_name}",
-                            "url": _phone_deep_link(phone, full_name),
-                        }
-                    ]
-                )
     buttons: list[dict] = []
     if current_page > 1:
         buttons.append({"text": "Previous", "callback_data": f"page:{current_page - 1}"})

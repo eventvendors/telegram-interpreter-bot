@@ -483,11 +483,7 @@ class BotRunner:
             chat_id,
             message_id,
             format_results_message(search_page),
-            reply_markup=results_keyboard(
-                search_page.page,
-                search_page.total_pages,
-                people=search_page.items,
-            ),
+            reply_markup=results_keyboard(search_page.page, search_page.total_pages),
         )
 
     def run_search(self, chat_id: int, page: int) -> SearchPage:
@@ -506,11 +502,7 @@ class BotRunner:
         self.client.send_message(
             chat_id,
             format_results_message(search_page),
-            reply_markup=results_keyboard(
-                search_page.page,
-                search_page.total_pages,
-                people=search_page.items,
-            ),
+            reply_markup=results_keyboard(search_page.page, search_page.total_pages),
         )
         self.client.send_message(
             chat_id,
