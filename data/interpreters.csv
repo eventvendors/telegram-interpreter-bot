@@ -1,0 +1,16 @@
+id,full_name,service_type,short_bio,languages,phone,email,telegram_link,whatsapp_link,is_active
+1,John Jones,Interpreter,Conference interpreter for English and French with 8 years of experience.,"English, French",+971500000001,john@example.com,https://t.me/johnjones,https://wa.me/971500000001,true
+2,Sara Ali,Interpreter,Arabic and English interpreter for legal and business meetings.,"Arabic, English",+971500000002,sara@example.com,https://t.me/saraali,https://wa.me/971500000002,true
+3,Marie Dubois,Translator,French and English translator focused on contracts and proposals.,"French, English",+971500000003,marie@example.com,https://t.me/mariedubois,https://wa.me/971500000003,true
+4,Omar Hassan,Interpreter,Arabic French English interpreter for events and delegations.,"Arabic, French, English",+971500000004,omar@example.com,https://t.me/omarhassan,https://wa.me/971500000004,true
+5,Lina Petrova,Translator,Russian English translator for corporate documents.,"Russian, English",+971500000005,lina@example.com,https://t.me/linapetrova,https://wa.me/971500000005,true
+6,David Chen,Interpreter,English Mandarin interpreter for commercial meetings.,"English, Mandarin",+971500000006,david@example.com,https://t.me/davidchen,https://wa.me/971500000006,true
+7,Nadia Karim,Interpreter,Remote interpreter for Arabic and English support calls.,"Arabic, English",+971500000007,nadia@example.com,https://t.me/nadiakarim,https://wa.me/971500000007,true
+8,Peter Laurent,Interpreter,French English interpreter available for conferences and VIP meetings.,"French, English",+971500000008,peter@example.com,https://t.me/peterlaurent,https://wa.me/971500000008,true
+9,Kathryn Rodríguez Pérez,Interpreter,Professional conference interpreter available for simultaneous and consecutive assignments across the UAE and the wider Middle East.,"Spanish, English",+34 611 812 695,kathryn.rguez.perez@gmail.com,,,true
+10,Rasil Galeev,Interpreter,Professional conference interpreter available for simultaneous and consecutive assignments across the UAE and the wider Middle East.,"Russian, English",+48 783 553 349,rasilgaleev@gmail.com,,,true
+11,Amina Saif,Interpreter,Professional conference interpreter available for simultaneous and consecutive assignments across the UAE and the wider Middle East.,"Hindi, Urdu, English",+44 7762 017301,amina.saif70@gmail.com,,,true
+12,Rosita R. Akl,Interpreter,Professional conference interpreter and sworn translator available for simultaneous and consecutive assignments across the UAE and the wider Middle East.,"Arabic, English",+971 50 157 3571,rositaakl@hotmail.com,,,true
+13,Tarek Chelmeran,Interpreter,Professional conference interpreter available for simultaneous and consecutive assignments across the UAE and the wider Middle East.,"Arabic, English",,tchelmeran@gmail.com,,,true
+14,Chaisaeng Nagler,Interpreter,Professional conference interpreter available for simultaneous and consecutive assignments across the UAE and the wider Middle East.,"Thai, English",+44 7973 930243,cnagler8@yahoo.co.uk,,,true
+15,Nguyen Thai,Interpreter,Professional conference interpreter available for simultaneous and consecutive assignments across the UAE and the wider Middle East.,"Vietnamese, English",+84 377 558 592,ngkthai2003@yahoo.com,,,true

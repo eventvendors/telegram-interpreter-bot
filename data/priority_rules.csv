@@ -1,0 +1,4 @@
+id,service_type,language_pair_key,person_id,priority_rank,is_active
+1,Interpreter,English|French,1,1,true
+2,Interpreter,Arabic|English,2,1,true
+3,Interpreter,Arabic|English,7,2,true
