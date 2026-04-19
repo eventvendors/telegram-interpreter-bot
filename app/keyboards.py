@@ -20,22 +20,18 @@ def language_keyboard(
     include_other_languages: bool = False,
 ) -> dict:
     rows: list[list[dict]] = []
-    if selected_language is not None:
-        rows.append(
-            [
-                {
-                    "text": f"Selected: {selected_language}",
-                    "callback_data": "selected-language",
-                }
-            ]
-        )
-    primary_languages = [
-        language for language in UN_LANGUAGES if language != selected_language
-    ]
+    primary_languages = list(UN_LANGUAGES)
     for index in range(0, len(primary_languages), 3):
         rows.append(
             [
-                {"text": language, "callback_data": f"{step}:{language}"}
+                {
+                    "text": f"✓ {language}" if language == selected_language else language,
+                    "callback_data": (
+                        "selected-language"
+                        if language == selected_language
+                        else f"{step}:{language}"
+                    ),
+                }
                 for language in primary_languages[index : index + 3]
             ]
         )
