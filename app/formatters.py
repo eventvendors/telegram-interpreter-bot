@@ -16,12 +16,7 @@ def _phone_line(value: str) -> str:
     if not value:
         return "<b>Phone:</b> Not provided"
     display_value = escape(value)
-    dial_value = "".join(character for character in value if character.isdigit() or character == "+")
-    safe_dial_value = escape(dial_value, quote=True)
-    return (
-        f"<b>Phone:</b> <code>{display_value}</code>\n"
-        f'<a href="tel:{safe_dial_value}">Call this number</a>'
-    )
+    return f"<b>Phone:</b> <code>{display_value}</code>"
 
 
 def _link_line(label: str, value: str) -> str:
