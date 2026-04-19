@@ -504,6 +504,12 @@ class BotRunner:
             format_results_message(search_page),
             reply_markup=results_keyboard(search_page.page, search_page.total_pages),
         )
+        for person in search_page.items:
+            if person.phone:
+                self.client.send_message(
+                    chat_id,
+                    f"{person.full_name}\n{person.phone}",
+                )
         self.client.send_message(
             chat_id,
             "Start another search any time with /start.",
