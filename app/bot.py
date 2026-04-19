@@ -119,6 +119,22 @@ class TelegramBotClient:
     def get_me(self) -> dict[str, Any]:
         return self._call("getMe")
 
+    def send_contact(
+        self,
+        chat_id: int,
+        phone_number: str,
+        first_name: str,
+        last_name: str | None = None,
+    ) -> dict[str, Any]:
+        payload: dict[str, Any] = {
+            "chat_id": chat_id,
+            "phone_number": phone_number,
+            "first_name": first_name,
+        }
+        if last_name:
+            payload["last_name"] = last_name
+        return self._call("sendContact", payload)
+
 
 class BotRunner:
     def __init__(self, settings: Settings) -> None:
@@ -504,6 +520,15 @@ class BotRunner:
             format_results_message(search_page),
             reply_markup=results_keyboard(search_page.page, search_page.total_pages),
         )
+        for person in search_page.items:
+            if person.phone:
+                first_name, last_name = self._split_name(person.full_name)
+                self.client.send_contact(
+                    chat_id=chat_id,
+                    phone_number=person.phone,
+                    first_name=first_name,
+                    last_name=last_name,
+                )
         self.client.send_message(
             chat_id,
             "Start another search any time with /start.",
@@ -616,3 +641,12 @@ class BotRunner:
                 f"'{language}' is not in the current language list. Use /languages to see the available options."
             )
         return language
+
+    @staticmethod
+    def _split_name(full_name: str) -> tuple[str, str | None]:
+        parts = full_name.strip().split()
+        if not parts:
+            return "Contact", None
+        if len(parts) == 1:
+            return parts[0], None
+        return parts[0], " ".join(parts[1:])
