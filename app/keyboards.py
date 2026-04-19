@@ -53,6 +53,9 @@ def other_languages_keyboard(languages: list[str], step: str) -> dict:
 
 
 def results_keyboard(current_page: int, total_pages: int) -> dict:
+    rows: list[list[dict]] = [
+        [{"text": f"Page {current_page} of {total_pages}", "callback_data": "page-status"}]
+    ]
     buttons: list[dict] = []
     if current_page > 1:
         buttons.append({"text": "Previous", "callback_data": f"page:{current_page - 1}"})
@@ -77,6 +80,7 @@ def results_keyboard(current_page: int, total_pages: int) -> dict:
     if current_page < total_pages:
         buttons.append({"text": "Next", "callback_data": f"page:{current_page + 1}"})
 
-    rows = [buttons[i : i + 5] for i in range(0, len(buttons), 5)]
+    if buttons:
+        rows.extend(buttons[i : i + 5] for i in range(0, len(buttons), 5))
     rows.append([{"text": "New search", "callback_data": "new-search"}])
     return {"inline_keyboard": rows}

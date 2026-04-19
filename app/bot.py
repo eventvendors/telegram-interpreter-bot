@@ -307,6 +307,13 @@ class BotRunner:
             )
             return
 
+        if callback.data == "page-status":
+            self.client.answer_callback_query(
+                callback.callback_query_id,
+                text="This shows your current results page.",
+            )
+            return
+
         if callback.data.startswith("page:"):
             page = int(callback.data.split(":", maxsplit=1)[1])
             self.handle_pagination(callback.chat_id, callback.message_id, page)
