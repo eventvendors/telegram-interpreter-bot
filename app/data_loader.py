@@ -13,6 +13,19 @@ def _split_languages(value: str) -> list[str]:
     return [part.strip() for part in str(value).split(",") if part.strip()]
 
 
+def _normalize_text(value: str) -> str:
+    return " ".join(str(value).strip().split()).casefold()
+
+
+def _canonical_service_type(value: str) -> str:
+    normalized = _normalize_text(value)
+    if normalized == "interpreter":
+        return "Interpreter"
+    if normalized == "translator":
+        return "Translator"
+    raise ValueError("Service type must be Interpreter or Translator.")
+
+
 @dataclass(frozen=True)
 class PersonRecord:
     id: int
@@ -76,16 +89,59 @@ class CsvRepository:
                 for row in reader
             ]
 
-    def available_languages(self) -> list[str]:
+    def available_languages(
+        self,
+        service_type: str | None = None,
+        required_language: str | None = None,
+        exclude_language: str | None = None,
+    ) -> list[str]:
         unique_languages: set[str] = set()
+        normalized_service_type = (
+            _canonical_service_type(service_type) if service_type is not None else None
+        )
+        normalized_required_language = (
+            _normalize_text(required_language) if required_language is not None else None
+        )
+        normalized_exclude_language = (
+            _normalize_text(exclude_language) if exclude_language is not None else None
+        )
+
         for person in self.load_people():
             if not person.is_active:
                 continue
-            unique_languages.update(person.languages)
+            if (
+                normalized_service_type is not None
+                and _canonical_service_type(person.service_type) != normalized_service_type
+            ):
+                continue
+            normalized_person_languages = {_normalize_text(language) for language in person.languages}
+            if (
+                normalized_required_language is not None
+                and normalized_required_language not in normalized_person_languages
+            ):
+                continue
+            for language in person.languages:
+                if (
+                    normalized_exclude_language is not None
+                    and _normalize_text(language) == normalized_exclude_language
+                ):
+                    continue
+                unique_languages.add(language)
         return sorted(unique_languages)
 
-    def has_language(self, language: str) -> bool:
+    def has_language(
+        self,
+        language: str,
+        service_type: str | None = None,
+        required_language: str | None = None,
+        exclude_language: str | None = None,
+    ) -> bool:
         normalized = language.strip().casefold()
         return any(
-            candidate.casefold() == normalized for candidate in self.available_languages()
+            candidate.casefold() == normalized
+            for candidate in self.available_languages(
+                service_type=service_type,
+                required_language=required_language,
+                exclude_language=exclude_language,
+            )
         )

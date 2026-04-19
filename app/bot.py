@@ -251,6 +251,16 @@ class BotRunner:
             self.handle_service_type(callback.chat_id, service_type)
             return
 
+        if callback.data.startswith("lang1:"):
+            language = callback.data.split(":", maxsplit=1)[1]
+            self.handle_first_language(callback.chat_id, language)
+            return
+
+        if callback.data.startswith("lang2:"):
+            language = callback.data.split(":", maxsplit=1)[1]
+            self.handle_second_language(callback.chat_id, language)
+            return
+
         if callback.data.startswith("page:"):
             page = int(callback.data.split(":", maxsplit=1)[1])
             self.handle_pagination(callback.chat_id, callback.message_id, page)
@@ -324,7 +334,7 @@ class BotRunner:
 
     def handle_service_type(self, chat_id: int, raw_service_type: str) -> None:
         service_type = canonical_service_type(raw_service_type)
-        available_languages = self.repository.available_languages()
+        available_languages = self.repository.available_languages(service_type=service_type)
         self.user_state[chat_id] = {
             "step": FIRST_LANGUAGE,
             "service_type": service_type,
@@ -334,25 +344,39 @@ class BotRunner:
             chat_id,
             (
                 "Choose or type the first language.\n\n"
-                "Tip: if the language is not shown in the keyboard, you can type it manually."
+                "I am only showing languages that are available for this service type.\n"
+                "You can still type manually if needed."
             ),
-            reply_markup=language_keyboard(available_languages),
+            reply_markup=language_keyboard(available_languages, step="lang1"),
         )
 
     def handle_first_language(self, chat_id: int, raw_language: str) -> None:
+        state = self.user_state[chat_id]
         try:
-            language = self._validate_language_input(raw_language)
+            language = self._validate_language_input(
+                raw_language,
+                service_type=state["service_type"],
+            )
         except ValueError as exc:
             self.client.send_message(chat_id, str(exc))
             return
 
-        state = self.user_state[chat_id]
         state["language_one"] = language
         state["step"] = SECOND_LANGUAGE
+        second_language_options = self.repository.available_languages(
+            service_type=state["service_type"],
+            required_language=language,
+            exclude_language=language,
+        )
+        state["available_languages"] = second_language_options
         self.client.send_message(
             chat_id,
-            "Choose or type the second language.",
-            reply_markup=language_keyboard(state["available_languages"]),
+            (
+                "Choose or type the second language.\n\n"
+                "These options are filtered to languages that actually exist together with "
+                f"{language} in the current database."
+            ),
+            reply_markup=language_keyboard(second_language_options, step="lang2"),
         )
 
     def handle_second_language(self, chat_id: int, raw_language: str) -> None:
@@ -360,6 +384,9 @@ class BotRunner:
         try:
             language = self._validate_language_input(
                 raw_language,
+                service_type=state["service_type"],
+                required_language=state["language_one"],
+                exclude_language=state["language_one"],
                 other_language=state["language_one"],
             )
         except ValueError as exc:
@@ -410,12 +437,20 @@ class BotRunner:
     def _validate_language_input(
         self,
         raw_value: str,
+        service_type: str | None = None,
+        required_language: str | None = None,
+        exclude_language: str | None = None,
         other_language: str | None = None,
     ) -> str:
         language = canonical_language(raw_value)
         if other_language and language.casefold() == other_language.casefold():
             raise ValueError("Please choose two different languages.")
-        if not self.repository.has_language(language):
+        if not self.repository.has_language(
+            language,
+            service_type=service_type,
+            required_language=required_language,
+            exclude_language=exclude_language,
+        ):
             raise ValueError(
                 f"'{language}' is not in the current language list. Use /languages to see the available options."
             )

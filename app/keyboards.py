@@ -11,21 +11,17 @@ def service_type_keyboard() -> dict:
     }
 
 
-def language_keyboard(languages: list[str]) -> dict:
+def language_keyboard(languages: list[str], step: str) -> dict:
     rows: list[list[dict]] = []
     row: list[dict] = []
     for language in languages:
-        row.append({"text": language})
+        row.append({"text": language, "callback_data": f"{step}:{language}"})
         if len(row) == 3:
             rows.append(row)
             row = []
     if row:
         rows.append(row)
-    return {
-        "keyboard": rows,
-        "resize_keyboard": True,
-        "one_time_keyboard": True,
-    }
+    return {"inline_keyboard": rows}
 
 
 def results_keyboard(current_page: int, total_pages: int) -> dict:
