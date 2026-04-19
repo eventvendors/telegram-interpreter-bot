@@ -25,7 +25,7 @@ def language_keyboard(
         rows.append(
             [
                 {
-                    "text": f"✓ {language}" if language == selected_language else language,
+                    "text": f"① {language}" if language == selected_language else language,
                     "callback_data": (
                         "selected-language"
                         if language == selected_language
