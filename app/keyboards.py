@@ -20,6 +20,15 @@ def language_keyboard(
     include_other_languages: bool = False,
 ) -> dict:
     rows: list[list[dict]] = []
+    if selected_language is not None:
+        rows.append(
+            [
+                {
+                    "text": f"Selected: {selected_language}",
+                    "callback_data": "selected-language",
+                }
+            ]
+        )
     primary_languages = [
         language for language in UN_LANGUAGES if language != selected_language
     ]

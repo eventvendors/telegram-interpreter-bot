@@ -300,6 +300,13 @@ class BotRunner:
             self.show_primary_languages(callback.chat_id, step=SECOND_LANGUAGE)
             return
 
+        if callback.data == "selected-language":
+            self.client.answer_callback_query(
+                callback.callback_query_id,
+                text="This is your first selected language.",
+            )
+            return
+
         if callback.data.startswith("page:"):
             page = int(callback.data.split(":", maxsplit=1)[1])
             self.handle_pagination(callback.chat_id, callback.message_id, page)
@@ -424,7 +431,8 @@ class BotRunner:
             (
                 "Choose the second language using the buttons in the chat.\n\n"
                 "The main panel always shows the six UN languages.\n"
-                f"Use Other Languages to see additional available options linked with {language}."
+                f"Your first selected language is {language}.\n"
+                "Use Other Languages to see additional available options."
             ),
             reply_markup=language_keyboard(
                 step="lang2",
