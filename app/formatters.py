@@ -12,6 +12,15 @@ def _contact_line(label: str, value: str) -> str:
     return f"<b>{label}:</b> {escape(value)}"
 
 
+def _phone_line(value: str) -> str:
+    if not value:
+        return "<b>Phone:</b> Not provided"
+    display_value = escape(value)
+    dial_value = "".join(character for character in value if character.isdigit() or character == "+")
+    safe_dial_value = escape(dial_value, quote=True)
+    return f'<b>Phone:</b> <a href="tel:{safe_dial_value}">{display_value}</a>'
+
+
 def _link_line(label: str, value: str) -> str:
     if not value:
         return f"<b>{label}:</b> Not provided"
@@ -31,7 +40,7 @@ def format_result_card(person: PersonRecord, index: int) -> str:
         f"<b>{index}. {escape(person.full_name)}</b>",
         escape(person.short_bio),
         f"<b>Languages:</b> {escape(', '.join(person.languages))}",
-        _contact_line("Phone", person.phone),
+        _phone_line(person.phone),
         _email_line(person.email),
         _link_line("Telegram", person.telegram_link),
         _link_line("WhatsApp", person.whatsapp_link),

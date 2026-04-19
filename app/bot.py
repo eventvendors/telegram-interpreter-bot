@@ -389,7 +389,6 @@ class BotRunner:
             chat_id,
             (
                 "Choose the first language using the buttons in the chat.\n\n"
-                "The main panel always shows the six UN languages.\n"
                 "Use Other Languages to see additional available options."
             ),
             reply_markup=language_keyboard(
@@ -430,7 +429,6 @@ class BotRunner:
             chat_id,
             (
                 "Choose the second language using the buttons in the chat.\n\n"
-                "The main panel always shows the six UN languages.\n"
                 f"Your first selected language is {language}.\n"
                 "Use Other Languages to see additional available options."
             ),
