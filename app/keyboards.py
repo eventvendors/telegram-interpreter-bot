@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+UN_LANGUAGES = ["Arabic", "Chinese", "English", "French", "Russian", "Spanish"]
+
+
 def service_type_keyboard() -> dict:
     return {
         "inline_keyboard": [
@@ -11,16 +14,36 @@ def service_type_keyboard() -> dict:
     }
 
 
-def language_keyboard(languages: list[str], step: str) -> dict:
+def language_keyboard(
+    step: str,
+    selected_language: str | None = None,
+    include_other_languages: bool = False,
+) -> dict:
     rows: list[list[dict]] = []
-    row: list[dict] = []
-    for language in languages:
-        row.append({"text": language, "callback_data": f"{step}:{language}"})
-        if len(row) == 3:
-            rows.append(row)
-            row = []
-    if row:
-        rows.append(row)
+    primary_languages = [
+        language for language in UN_LANGUAGES if language != selected_language
+    ]
+    for index in range(0, len(primary_languages), 3):
+        rows.append(
+            [
+                {"text": language, "callback_data": f"{step}:{language}"}
+                for language in primary_languages[index : index + 3]
+            ]
+        )
+    rows.append([{"text": "Other Languages", "callback_data": f"{step}-other"}])
+    return {"inline_keyboard": rows}
+
+
+def other_languages_keyboard(languages: list[str], step: str) -> dict:
+    rows: list[list[dict]] = []
+    for index in range(0, len(languages), 3):
+        rows.append(
+            [
+                {"text": language, "callback_data": f"{step}:{language}"}
+                for language in languages[index : index + 3]
+            ]
+        )
+    rows.append([{"text": "Back", "callback_data": f"{step}-back"}])
     return {"inline_keyboard": rows}
 
 
