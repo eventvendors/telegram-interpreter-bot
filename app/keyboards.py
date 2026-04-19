@@ -2,11 +2,12 @@ from __future__ import annotations
 
 def service_type_keyboard() -> dict:
     return {
-        "keyboard": [
-            [{"text": "Interpreter"}, {"text": "Translator"}],
-        ],
-        "resize_keyboard": True,
-        "one_time_keyboard": True,
+        "inline_keyboard": [
+            [
+                {"text": "Interpreter", "callback_data": "service:Interpreter"},
+                {"text": "Translator", "callback_data": "service:Translator"},
+            ]
+        ]
     }
 
 

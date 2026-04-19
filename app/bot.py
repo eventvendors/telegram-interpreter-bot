@@ -225,12 +225,9 @@ class BotRunner:
         current_step = state.get("step")
 
         if current_step == SERVICE_TYPE:
-            if lowered in {"interpreter", "translator"}:
-                self.handle_service_type(message.chat_id, text)
-                return
             self.client.send_message(
                 message.chat_id,
-                "Please choose one option first: Interpreter or Translator.",
+                "Please use the buttons in the chat to choose Interpreter or Translator.",
                 reply_markup=service_type_keyboard(),
             )
             return
@@ -248,6 +245,11 @@ class BotRunner:
 
     def handle_callback(self, callback: CallbackPayload) -> None:
         self.client.answer_callback_query(callback.callback_query_id)
+
+        if callback.data.startswith("service:"):
+            service_type = callback.data.split(":", maxsplit=1)[1]
+            self.handle_service_type(callback.chat_id, service_type)
+            return
 
         if callback.data.startswith("page:"):
             page = int(callback.data.split(":", maxsplit=1)[1])
