@@ -480,6 +480,32 @@ def _render_page(title: str, body: str) -> str:
       border-radius: 12px;
       background: #081321;
     }}
+    .table-wrap {{
+      margin-top: 18px;
+      overflow-x: auto;
+      border: 1px solid #22344b;
+      border-radius: 12px;
+      background: #081321;
+    }}
+    table {{
+      width: 100%;
+      border-collapse: collapse;
+    }}
+    th, td {{
+      padding: 12px 10px;
+      border-bottom: 1px solid #22344b;
+      vertical-align: top;
+      text-align: left;
+      font-size: 14px;
+    }}
+    th {{
+      color: #b8c7d8;
+      font-weight: 700;
+      background: #0b1626;
+    }}
+    tr:last-child td {{
+      border-bottom: 0;
+    }}
     .actions {{
       display: flex;
       gap: 10px;
@@ -504,6 +530,24 @@ def _render_page(title: str, body: str) -> str:
     .reject {{
       background: #f9dede;
       color: #2a0c0c;
+    }}
+    .row-actions {{
+      display: flex;
+      gap: 8px;
+      min-width: 180px;
+    }}
+    .row-actions form {{
+      margin: 0;
+      flex: 1;
+    }}
+    .row-actions button {{
+      width: 100%;
+      padding: 8px 10px;
+      border: 0;
+      border-radius: 8px;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 700;
     }}
   </style>
 </head>
@@ -646,38 +690,65 @@ def _render_admin_nav(active_tab: str) -> str:
 
 
 def _render_directory_page(people: list[PersonRecord]) -> str:
+    people = sorted(people, key=lambda person: person.full_name.casefold())
     if not people:
-        cards = '<div class="line">No live directory records right now.</div>'
+        content = '<div class="line">No live directory records right now.</div>'
     else:
-        cards = "".join(_render_directory_card(person) for person in people)
+        content = _render_directory_table(people)
     body = f"""
 <h1>Admin review</h1>
 {_render_admin_nav("directory")}
 <div class="line">Live directory</div>
-{cards}
+<div class="line small">Records are shown in alphabetical order.</div>
+{content}
 """
     return _render_page("Live directory", body)
 
 
-def _render_directory_card(person: PersonRecord) -> str:
+def _render_directory_table(people: list[PersonRecord]) -> str:
+    rows = "".join(_render_directory_row(person) for person in people)
     return f"""
-<section class="card">
-  <h2>{escape(person.full_name)}</h2>
-  <div class="line"><strong>Languages:</strong> {escape(", ".join(person.languages))}</div>
-  <div class="line"><strong>Phone:</strong> {escape(person.phone or "Not provided")}</div>
-  <div class="line"><strong>Email:</strong> {escape(person.email or "Not provided")}</div>
-  <div class="line"><strong>Bio:</strong> {escape(person.short_bio)}</div>
-  <div class="actions">
-    <form method="get" action="/admin/directory/edit">
-      <input type="hidden" name="id" value="{person.id}">
-      <button class="approve" type="submit">Edit</button>
-    </form>
-    <form method="post" action="/admin/directory/delete">
-      <input type="hidden" name="person_id" value="{person.id}">
-      <button class="reject" type="submit">Delete</button>
-    </form>
-  </div>
-</section>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Languages</th>
+        <th>Phone</th>
+        <th>Email</th>
+        <th>Bio</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {rows}
+    </tbody>
+  </table>
+</div>
+"""
+
+
+def _render_directory_row(person: PersonRecord) -> str:
+    return f"""
+<tr>
+  <td>{escape(person.full_name)}</td>
+  <td>{escape(", ".join(person.languages))}</td>
+  <td>{escape(person.phone or "Not provided")}</td>
+  <td>{escape(person.email or "Not provided")}</td>
+  <td>{escape(person.short_bio)}</td>
+  <td>
+    <div class="row-actions">
+      <form method="get" action="/admin/directory/edit">
+        <input type="hidden" name="id" value="{person.id}">
+        <button class="approve" type="submit">Edit</button>
+      </form>
+      <form method="post" action="/admin/directory/delete">
+        <input type="hidden" name="person_id" value="{person.id}">
+        <button class="reject" type="submit">Delete</button>
+      </form>
+    </div>
+  </td>
+</tr>
 """
 
 
