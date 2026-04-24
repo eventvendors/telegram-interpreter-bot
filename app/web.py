@@ -110,6 +110,16 @@ def create_web_app(settings: Settings):
                     _render_directory_page(people),
                 )
             return _html_response(start_response, 200, _render_admin_login_page())
+        if method == "GET" and path == "/admin/directory/new":
+            if not settings.admin_password:
+                return _html_response(start_response, 503, _render_admin_unconfigured_page())
+            if not _is_admin_authenticated(environ, settings.admin_password):
+                return _html_response(start_response, 200, _render_admin_login_page())
+            return _html_response(
+                start_response,
+                200,
+                _render_directory_create_page(language_options=language_options),
+            )
         if method == "GET" and path == "/admin/directory/edit":
             if not settings.admin_password:
                 return _html_response(start_response, 503, _render_admin_unconfigured_page())
@@ -220,6 +230,31 @@ def create_web_app(settings: Settings):
                 )
             directory_repository.update_person(
                 person_id=person_id,
+                full_name=form_values["full_name"],
+                languages=form_values["working_languages"],
+                phone=form_values["phone_number"],
+                email=form_values["email_address"],
+                short_bio=form_values["short_bio"],
+            )
+            return _redirect(start_response, "/admin/directory")
+        if method == "POST" and path == "/admin/directory/new":
+            if not settings.admin_password:
+                return _html_response(start_response, 503, _render_admin_unconfigured_page())
+            if not _is_admin_authenticated(environ, settings.admin_password):
+                return _redirect(start_response, "/admin")
+            payload = _parse_form_body(environ)
+            form_values, errors = _parse_directory_form(payload, language_options)
+            if errors:
+                return _html_response(
+                    start_response,
+                    400,
+                    _render_directory_create_page(
+                        errors=errors,
+                        form_values=form_values,
+                        language_options=language_options,
+                    ),
+                )
+            directory_repository.create_person(
                 full_name=form_values["full_name"],
                 languages=form_values["working_languages"],
                 phone=form_values["phone_number"],
@@ -714,6 +749,7 @@ def _render_directory_page(people: list[PersonRecord]) -> str:
 {_render_admin_nav("directory")}
 <div class="line">Live directory</div>
 <div class="line small">Records are shown in alphabetical order.</div>
+<a class="button" href="/admin/directory/new">Add interpreter</a>
 {content}
 """
     return _render_page("Live directory", body, wide=True)
@@ -799,6 +835,37 @@ def _render_directory_edit_page(
 <a class="button" href="/admin/directory">Back to directory</a>
 """
     return _render_page("Edit directory record", body, wide=True)
+
+
+def _render_directory_create_page(
+    errors: dict[str, str] | None = None,
+    form_values: dict[str, str] | None = None,
+    language_options: list[str] | None = None,
+) -> str:
+    errors = errors or {}
+    language_options = language_options or []
+    form_values = form_values or {
+        "full_name": "",
+        "working_languages": "",
+        "phone_number": "",
+        "email_address": "",
+        "short_bio": "",
+    }
+    body = f"""
+<h1>Admin review</h1>
+{_render_admin_nav("directory")}
+<div class="line">Add interpreter</div>
+<form method="post" action="/admin/directory/new">
+  {_render_input("Full name", "full_name", form_values["full_name"], errors.get("full_name"), maxlength=30)}
+  {_render_language_select(form_values["working_languages"], errors.get("working_languages"), language_options)}
+  {_render_input("Phone number", "phone_number", form_values["phone_number"], errors.get("phone_number"), input_type="tel", maxlength=20)}
+  {_render_input("Email address", "email_address", form_values["email_address"], errors.get("email_address"), input_type="email", maxlength=50)}
+  {_render_textarea("Short bio/tag line", "short_bio", form_values["short_bio"], errors.get("short_bio"), placeholder="Max 90 characters including spaces", maxlength=90)}
+  <button class="button" type="submit">Add interpreter</button>
+</form>
+<a class="button" href="/admin/directory">Back to directory</a>
+"""
+    return _render_page("Add interpreter", body, wide=True)
 
 
 def _render_admin_unconfigured_page() -> str:

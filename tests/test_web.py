@@ -161,6 +161,74 @@ class WebValidationTests(unittest.TestCase):
         self.assertEqual(len(people), 1)
         self.assertEqual(people[0].full_name, "John Jones")
 
+    def test_admin_can_create_directory_record_directly(self) -> None:
+        unique = uuid.uuid4().hex
+        storage_dir = Path(__file__).resolve().parent.parent / "storage"
+        storage_dir.mkdir(parents=True, exist_ok=True)
+        interpreters_csv = storage_dir / f"interpreters-create-{unique}.csv"
+        priority_rules_csv = storage_dir / f"priority-create-{unique}.csv"
+        db_path = storage_dir / f"create-{unique}.db"
+
+        interpreters_csv.write_text(
+            "\n".join(
+                [
+                    "id,full_name,service_type,short_bio,languages,phone,email,telegram_link,whatsapp_link,is_active",
+                    '1,John Jones,Interpreter,Conference interpreter,"Arabic, English",+971500000001,john@example.com,,,true',
+                ]
+            ),
+            encoding="utf-8",
+        )
+        priority_rules_csv.write_text(
+            "id,service_type,language_pair_key,person_id,priority_rank,is_active\n",
+            encoding="utf-8",
+        )
+
+        settings = Settings(
+            telegram_bot_token="test-token",
+            interpreters_csv=interpreters_csv,
+            priority_rules_csv=priority_rules_csv,
+            submissions_db=db_path,
+            public_base_url="https://example.com",
+            admin_password="secret",
+            github_backup_token="",
+            github_repo="eventvendors/telegram-interpreter-bot",
+            github_backup_branch="main",
+            backup_git_name="Test",
+            backup_git_email="test@example.com",
+        )
+
+        app = create_web_app(settings)
+        body = (
+            "full_name=Jane+Doe"
+            "&working_languages=Arabic"
+            "&working_languages=Japanese"
+            "&phone_number=%2B971500000002"
+            "&email_address=jane%40example.com"
+            "&short_bio=Interpreter+in+Dubai"
+        )
+        status_headers: dict[str, object] = {}
+
+        def start_response(status, headers):
+            status_headers["status"] = status
+            status_headers["headers"] = headers
+
+        environ = {
+            "REQUEST_METHOD": "POST",
+            "PATH_INFO": "/admin/directory/new",
+            "CONTENT_LENGTH": str(len(body)),
+            "wsgi.input": BytesIO(body.encode("utf-8")),
+            "HTTP_COOKIE": f"admin_auth={_auth_cookie_value('secret')}",
+        }
+
+        app(environ, start_response)
+
+        self.assertEqual(status_headers["status"], "303 See Other")
+        directory_repository = SqliteDirectoryRepository(interpreters_csv, priority_rules_csv, db_path)
+        people = directory_repository.load_people()
+        self.assertEqual(len(people), 2)
+        self.assertEqual(people[-1].full_name, "Jane Doe")
+        self.assertEqual(people[-1].languages, ("Arabic", "Japanese"))
+
 
 if __name__ == "__main__":
     unittest.main()
