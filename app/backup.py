@@ -11,6 +11,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from app.config import BASE_DIR, Settings
+from app.data_loader import SqliteDirectoryRepository
 from app.submissions import SubmissionRepository
 
 
@@ -32,6 +33,11 @@ def run_backup_scheduler(settings: Settings) -> None:
         return
 
     repository = SubmissionRepository(settings.submissions_db)
+    directory_repository = SqliteDirectoryRepository(
+        settings.interpreters_csv,
+        settings.priority_rules_csv,
+        settings.submissions_db,
+    )
     logger.info(
         "GitHub backup scheduler enabled for %s at %02d:%02d Dubai time",
         settings.github_repo,
@@ -48,7 +54,8 @@ def run_backup_scheduler(settings: Settings) -> None:
         time.sleep(next_run.sleep_seconds)
         try:
             export_submissions_csv(repository, SUBMISSIONS_EXPORT_PATH)
-            commit_and_push_backup(settings, SUBMISSIONS_EXPORT_PATH)
+            export_directory_csv(directory_repository, settings.interpreters_csv)
+            commit_and_push_backup(settings, [SUBMISSIONS_EXPORT_PATH, settings.interpreters_csv])
         except Exception:
             logger.exception("Daily GitHub backup failed")
 
@@ -96,21 +103,59 @@ def export_submissions_csv(repository: SubmissionRepository, output_path: Path) 
             )
 
 
-def commit_and_push_backup(settings: Settings, export_path: Path) -> None:
+def export_directory_csv(directory_repository: SqliteDirectoryRepository, output_path: Path) -> None:
+    people = directory_repository.load_people()
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with output_path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(
+            handle,
+            fieldnames=[
+                "id",
+                "full_name",
+                "service_type",
+                "short_bio",
+                "languages",
+                "phone",
+                "email",
+                "telegram_link",
+                "whatsapp_link",
+                "is_active",
+            ],
+        )
+        writer.writeheader()
+        for person in people:
+            writer.writerow(
+                {
+                    "id": person.id,
+                    "full_name": person.full_name,
+                    "service_type": person.service_type,
+                    "short_bio": person.short_bio,
+                    "languages": ", ".join(person.languages),
+                    "phone": person.phone,
+                    "email": person.email,
+                    "telegram_link": person.telegram_link,
+                    "whatsapp_link": person.whatsapp_link,
+                    "is_active": "true" if person.is_active else "false",
+                }
+            )
+
+
+def commit_and_push_backup(settings: Settings, export_paths: list[Path]) -> None:
     env = os.environ.copy()
     env["GIT_TERMINAL_PROMPT"] = "0"
 
     _run_git(["config", "user.name", settings.backup_git_name], env)
     _run_git(["config", "user.email", settings.backup_git_email], env)
-    _run_git(["add", str(export_path.relative_to(BASE_DIR))], env)
+    relative_paths = [str(path.relative_to(BASE_DIR)) for path in export_paths]
+    _run_git(["add", *relative_paths], env)
 
     status = _run_git(
-        ["status", "--short", "--", str(export_path.relative_to(BASE_DIR))],
+        ["status", "--short", "--", *relative_paths],
         env,
         capture_output=True,
     ).stdout.strip()
     if not status:
-        logger.info("No backup changes detected for %s", export_path.name)
+        logger.info("No backup changes detected for tracked export files")
         return
 
     timestamp = datetime.now(DUBAI_TZ).strftime("%Y-%m-%d %H:%M")

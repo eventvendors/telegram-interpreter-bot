@@ -7,11 +7,17 @@ from urllib.parse import parse_qs
 from wsgiref.simple_server import make_server
 
 from app.config import Settings
+from app.data_loader import PersonRecord, SqliteDirectoryRepository
 from app.submissions import RegistrationSubmission, StoredSubmission, SubmissionRepository
 
 
 def create_web_app(settings: Settings):
     repository = SubmissionRepository(settings.submissions_db)
+    directory_repository = SqliteDirectoryRepository(
+        settings.interpreters_csv,
+        settings.priority_rules_csv,
+        settings.submissions_db,
+    )
 
     def application(environ, start_response):
         method = environ.get("REQUEST_METHOD", "GET").upper()
@@ -72,6 +78,31 @@ def create_web_app(settings: Settings):
                     _render_admin_page("Rejected", "rejected", rejected),
                 )
             return _html_response(start_response, 200, _render_admin_login_page())
+        if method == "GET" and path == "/admin/directory":
+            if not settings.admin_password:
+                return _html_response(start_response, 503, _render_admin_unconfigured_page())
+            if _is_admin_authenticated(environ, settings.admin_password):
+                people = directory_repository.load_people()
+                return _html_response(
+                    start_response,
+                    200,
+                    _render_directory_page(people),
+                )
+            return _html_response(start_response, 200, _render_admin_login_page())
+        if method == "GET" and path == "/admin/directory/edit":
+            if not settings.admin_password:
+                return _html_response(start_response, 503, _render_admin_unconfigured_page())
+            if not _is_admin_authenticated(environ, settings.admin_password):
+                return _html_response(start_response, 200, _render_admin_login_page())
+            query = parse_qs(environ.get("QUERY_STRING", ""), keep_blank_values=True)
+            try:
+                person_id = int(query.get("id", ["0"])[0])
+            except ValueError:
+                person_id = 0
+            person = directory_repository.get_person(person_id)
+            if person is None:
+                return _html_response(start_response, 404, _render_not_found_page())
+            return _html_response(start_response, 200, _render_directory_edit_page(person))
         if method == "POST" and path == "/admin/login":
             if not settings.admin_password:
                 return _html_response(start_response, 503, _render_admin_unconfigured_page())
@@ -101,7 +132,66 @@ def create_web_app(settings: Settings):
                 submission_id = 0
             if submission_id > 0 and action in {"approved", "rejected"}:
                 repository.update_status(submission_id, action)
+                if action == "approved":
+                    submission = next(
+                        (
+                            item
+                            for item in repository.list_submissions()
+                            if item.id == submission_id
+                        ),
+                        None,
+                    )
+                    if submission is not None:
+                        directory_repository.create_person(
+                            full_name=submission.full_name,
+                            languages=submission.working_languages,
+                            phone=submission.phone_number,
+                            email=submission.email_address,
+                            short_bio=submission.short_bio,
+                        )
             return _redirect(start_response, "/admin")
+        if method == "POST" and path == "/admin/directory/edit":
+            if not settings.admin_password:
+                return _html_response(start_response, 503, _render_admin_unconfigured_page())
+            if not _is_admin_authenticated(environ, settings.admin_password):
+                return _redirect(start_response, "/admin")
+            payload = _parse_form_body(environ)
+            form_values, errors = _parse_directory_form(payload)
+            try:
+                person_id = int(payload.get("person_id", "0"))
+            except ValueError:
+                person_id = 0
+            person = directory_repository.get_person(person_id)
+            if person is None:
+                return _html_response(start_response, 404, _render_not_found_page())
+            if errors:
+                return _html_response(
+                    start_response,
+                    400,
+                    _render_directory_edit_page(person, errors=errors, form_values=form_values),
+                )
+            directory_repository.update_person(
+                person_id=person_id,
+                full_name=form_values["full_name"],
+                languages=form_values["working_languages"],
+                phone=form_values["phone_number"],
+                email=form_values["email_address"],
+                short_bio=form_values["short_bio"],
+            )
+            return _redirect(start_response, "/admin/directory")
+        if method == "POST" and path == "/admin/directory/delete":
+            if not settings.admin_password:
+                return _html_response(start_response, 503, _render_admin_unconfigured_page())
+            if not _is_admin_authenticated(environ, settings.admin_password):
+                return _redirect(start_response, "/admin")
+            payload = _parse_form_body(environ)
+            try:
+                person_id = int(payload.get("person_id", "0"))
+            except ValueError:
+                person_id = 0
+            if person_id > 0:
+                directory_repository.delete_person(person_id)
+            return _redirect(start_response, "/admin/directory")
 
         return _html_response(start_response, 404, _render_not_found_page())
 
@@ -116,7 +206,10 @@ def serve_web_app(settings: Settings) -> None:
 
 def _parse_submission(environ) -> tuple[dict[str, str], dict[str, str]]:
     payload = _parse_form_body(environ)
+    return _parse_directory_form(payload)
 
+
+def _parse_directory_form(payload: dict[str, str]) -> tuple[dict[str, str], dict[str, str]]:
     values = {
         "full_name": payload.get("full_name", "").strip(),
         "working_languages": payload.get("working_languages", "").strip(),
@@ -430,6 +523,7 @@ def _render_admin_nav(active_tab: str) -> str:
         ("Pending", "/admin", "pending"),
         ("Approved", "/admin/approved", "approved"),
         ("Rejected", "/admin/rejected", "rejected"),
+        ("Directory", "/admin/directory", "directory"),
     ]
     links = []
     for label, href, key in tabs:
@@ -438,6 +532,73 @@ def _render_admin_nav(active_tab: str) -> str:
         else:
             links.append(f'<a href="{escape(href, quote=True)}">{escape(label)}</a>')
     return f'<div class="line">{" | ".join(links)}</div>'
+
+
+def _render_directory_page(people: list[PersonRecord]) -> str:
+    if not people:
+        cards = '<div class="line">No live directory records right now.</div>'
+    else:
+        cards = "".join(_render_directory_card(person) for person in people)
+    body = f"""
+<h1>Admin review</h1>
+{_render_admin_nav("directory")}
+<div class="line">Live directory</div>
+{cards}
+"""
+    return _render_page("Live directory", body)
+
+
+def _render_directory_card(person: PersonRecord) -> str:
+    return f"""
+<section class="card">
+  <h2>{escape(person.full_name)}</h2>
+  <div class="line"><strong>Languages:</strong> {escape(", ".join(person.languages))}</div>
+  <div class="line"><strong>Phone:</strong> {escape(person.phone or "Not provided")}</div>
+  <div class="line"><strong>Email:</strong> {escape(person.email or "Not provided")}</div>
+  <div class="line"><strong>Bio:</strong> {escape(person.short_bio)}</div>
+  <div class="actions">
+    <form method="get" action="/admin/directory/edit">
+      <input type="hidden" name="id" value="{person.id}">
+      <button class="approve" type="submit">Edit</button>
+    </form>
+    <form method="post" action="/admin/directory/delete">
+      <input type="hidden" name="person_id" value="{person.id}">
+      <button class="reject" type="submit">Delete</button>
+    </form>
+  </div>
+</section>
+"""
+
+
+def _render_directory_edit_page(
+    person: PersonRecord,
+    errors: dict[str, str] | None = None,
+    form_values: dict[str, str] | None = None,
+) -> str:
+    errors = errors or {}
+    form_values = form_values or {
+        "full_name": person.full_name,
+        "working_languages": ", ".join(person.languages),
+        "phone_number": person.phone,
+        "email_address": person.email,
+        "short_bio": person.short_bio,
+    }
+    body = f"""
+<h1>Admin review</h1>
+{_render_admin_nav("directory")}
+<div class="line">Edit live directory record</div>
+<form method="post" action="/admin/directory/edit">
+  <input type="hidden" name="person_id" value="{person.id}">
+  {_render_input("Full name", "full_name", form_values["full_name"], errors.get("full_name"))}
+  {_render_input("Working languages", "working_languages", form_values["working_languages"], errors.get("working_languages"))}
+  {_render_input("Phone number", "phone_number", form_values["phone_number"], errors.get("phone_number"), input_type="tel")}
+  {_render_input("Email address", "email_address", form_values["email_address"], errors.get("email_address"), input_type="email")}
+  {_render_textarea("Short bio/tag line", "short_bio", form_values["short_bio"], errors.get("short_bio"), placeholder="Max 90 characters including spaces")}
+  <button class="button" type="submit">Update record</button>
+</form>
+<a class="button" href="/admin/directory">Back to directory</a>
+"""
+    return _render_page("Edit directory record", body)
 
 
 def _render_admin_unconfigured_page() -> str:

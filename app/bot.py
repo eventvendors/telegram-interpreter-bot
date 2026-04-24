@@ -10,7 +10,7 @@ from html import escape
 from typing import Any
 
 from app.config import Settings
-from app.data_loader import CsvRepository
+from app.data_loader import SqliteDirectoryRepository
 from app.formatters import format_results_message
 from app.keyboards import (
     UN_LANGUAGES,
@@ -123,7 +123,11 @@ class BotRunner:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
         self.client = TelegramBotClient(settings.telegram_bot_token)
-        self.repository = CsvRepository(settings.interpreters_csv, settings.priority_rules_csv)
+        self.repository = SqliteDirectoryRepository(
+            settings.interpreters_csv,
+            settings.priority_rules_csv,
+            settings.submissions_db,
+        )
         self.user_state: dict[int, dict[str, Any]] = {}
 
     def run(self) -> None:

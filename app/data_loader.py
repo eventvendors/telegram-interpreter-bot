@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -145,3 +146,194 @@ class CsvRepository:
                 exclude_language=exclude_language,
             )
         )
+
+
+class SqliteDirectoryRepository(CsvRepository):
+    def __init__(
+        self,
+        interpreters_csv: Path,
+        priority_rules_csv: Path,
+        db_path: Path,
+    ) -> None:
+        super().__init__(interpreters_csv, priority_rules_csv)
+        self.db_path = Path(db_path)
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        self._initialize()
+        self._bootstrap_from_csv_if_empty()
+
+    def _connect(self) -> sqlite3.Connection:
+        connection = sqlite3.connect(self.db_path)
+        connection.row_factory = sqlite3.Row
+        return connection
+
+    def _initialize(self) -> None:
+        with self._connect() as connection:
+            connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS directory_people (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    full_name TEXT NOT NULL,
+                    service_type TEXT NOT NULL,
+                    short_bio TEXT NOT NULL,
+                    languages TEXT NOT NULL,
+                    phone TEXT NOT NULL,
+                    email TEXT NOT NULL,
+                    telegram_link TEXT NOT NULL,
+                    whatsapp_link TEXT NOT NULL,
+                    is_active INTEGER NOT NULL DEFAULT 1
+                )
+                """
+            )
+
+    def _bootstrap_from_csv_if_empty(self) -> None:
+        with self._connect() as connection:
+            count = connection.execute("SELECT COUNT(*) FROM directory_people").fetchone()[0]
+            if count:
+                return
+            for person in super().load_people():
+                connection.execute(
+                    """
+                    INSERT INTO directory_people (
+                        id,
+                        full_name,
+                        service_type,
+                        short_bio,
+                        languages,
+                        phone,
+                        email,
+                        telegram_link,
+                        whatsapp_link,
+                        is_active
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        person.id,
+                        person.full_name,
+                        person.service_type,
+                        person.short_bio,
+                        ", ".join(person.languages),
+                        person.phone,
+                        person.email,
+                        person.telegram_link,
+                        person.whatsapp_link,
+                        1 if person.is_active else 0,
+                    ),
+                )
+
+    def load_people(self) -> list[PersonRecord]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT id, full_name, service_type, short_bio, languages, phone, email, telegram_link, whatsapp_link, is_active
+                FROM directory_people
+                ORDER BY id ASC
+                """
+            ).fetchall()
+        return [
+            PersonRecord(
+                id=int(row["id"]),
+                full_name=row["full_name"],
+                service_type=row["service_type"],
+                short_bio=row["short_bio"],
+                languages=tuple(_split_languages(row["languages"])),
+                phone=row["phone"],
+                email=row["email"],
+                telegram_link=row["telegram_link"],
+                whatsapp_link=row["whatsapp_link"],
+                is_active=bool(row["is_active"]),
+            )
+            for row in rows
+        ]
+
+    def create_person(
+        self,
+        full_name: str,
+        languages: str,
+        phone: str,
+        email: str,
+        short_bio: str,
+        service_type: str = "Interpreter",
+    ) -> int:
+        with self._connect() as connection:
+            cursor = connection.execute(
+                """
+                INSERT INTO directory_people (
+                    full_name,
+                    service_type,
+                    short_bio,
+                    languages,
+                    phone,
+                    email,
+                    telegram_link,
+                    whatsapp_link,
+                    is_active
+                ) VALUES (?, ?, ?, ?, ?, ?, '', '', 1)
+                """,
+                (
+                    full_name.strip(),
+                    service_type.strip(),
+                    short_bio.strip(),
+                    ", ".join(_split_languages(languages)),
+                    phone.strip(),
+                    email.strip(),
+                ),
+            )
+            return int(cursor.lastrowid)
+
+    def get_person(self, person_id: int) -> PersonRecord | None:
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT id, full_name, service_type, short_bio, languages, phone, email, telegram_link, whatsapp_link, is_active
+                FROM directory_people
+                WHERE id = ?
+                """,
+                (person_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        return PersonRecord(
+            id=int(row["id"]),
+            full_name=row["full_name"],
+            service_type=row["service_type"],
+            short_bio=row["short_bio"],
+            languages=tuple(_split_languages(row["languages"])),
+            phone=row["phone"],
+            email=row["email"],
+            telegram_link=row["telegram_link"],
+            whatsapp_link=row["whatsapp_link"],
+            is_active=bool(row["is_active"]),
+        )
+
+    def update_person(
+        self,
+        person_id: int,
+        full_name: str,
+        languages: str,
+        phone: str,
+        email: str,
+        short_bio: str,
+    ) -> None:
+        with self._connect() as connection:
+            connection.execute(
+                """
+                UPDATE directory_people
+                SET full_name = ?, languages = ?, phone = ?, email = ?, short_bio = ?
+                WHERE id = ?
+                """,
+                (
+                    full_name.strip(),
+                    ", ".join(_split_languages(languages)),
+                    phone.strip(),
+                    email.strip(),
+                    short_bio.strip(),
+                    person_id,
+                ),
+            )
+
+    def delete_person(self, person_id: int) -> None:
+        with self._connect() as connection:
+            connection.execute(
+                "DELETE FROM directory_people WHERE id = ?",
+                (person_id,),
+            )
