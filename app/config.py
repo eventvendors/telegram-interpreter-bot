@@ -30,6 +30,13 @@ class Settings:
     submissions_db: Path
     public_base_url: str
     admin_password: str
+    github_backup_token: str
+    github_repo: str
+    github_backup_branch: str
+    backup_git_name: str
+    backup_git_email: str
+    backup_hour_dubai: int = 3
+    backup_minute_dubai: int = 0
     web_host: str = "0.0.0.0"
     web_port: int = 8000
     results_per_page: int = 5
@@ -56,6 +63,16 @@ def get_settings() -> Settings:
     )
     public_base_url = os.getenv("PUBLIC_BASE_URL", default_public_base_url).strip().rstrip("/")
     admin_password = os.getenv("ADMIN_PASSWORD", "").strip()
+    github_backup_token = os.getenv("GITHUB_BACKUP_TOKEN", "").strip()
+    github_repo = os.getenv("GITHUB_REPO", "eventvendors/telegram-interpreter-bot").strip()
+    github_backup_branch = os.getenv("GITHUB_BACKUP_BRANCH", "main").strip()
+    backup_git_name = os.getenv("BACKUP_GIT_NAME", "UAE Translator Finder Bot").strip()
+    backup_git_email = os.getenv(
+        "BACKUP_GIT_EMAIL",
+        "soundxb2019@gmail.com",
+    ).strip()
+    backup_hour_dubai = int(os.getenv("BACKUP_HOUR_DUBAI", "3"))
+    backup_minute_dubai = int(os.getenv("BACKUP_MINUTE_DUBAI", "0"))
 
     return Settings(
         telegram_bot_token=token,
@@ -64,5 +81,12 @@ def get_settings() -> Settings:
         submissions_db=submissions_db,
         public_base_url=public_base_url,
         admin_password=admin_password,
+        github_backup_token=github_backup_token,
+        github_repo=github_repo,
+        github_backup_branch=github_backup_branch,
+        backup_git_name=backup_git_name,
+        backup_git_email=backup_git_email,
+        backup_hour_dubai=backup_hour_dubai,
+        backup_minute_dubai=backup_minute_dubai,
         web_port=web_port,
     )
