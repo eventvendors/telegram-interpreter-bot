@@ -52,7 +52,7 @@ def format_results_message(search_page: SearchPage) -> str:
         )
 
     header = (
-        f"<b>Results</b>\n"
+        f"<b>Search results</b>\n"
         f"Language pair: {escape(search_page.language_pair_key.replace('|', ' + '))}\n"
         f"Page {search_page.page} of {search_page.total_pages}\n"
         f"Total matches: {search_page.total_results}"
