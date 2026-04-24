@@ -319,7 +319,7 @@ class BotRunner:
                 "3. I will show matching professionals with contact details\n\n"
                 "<b>Example</b>\n"
                 "Arabic -> English\n\n"
-                "Choose the languages to begin."
+                "Choose the FIRST language to begin."
             ),
             reply_markup=language_keyboard(
                 step="lang1",
