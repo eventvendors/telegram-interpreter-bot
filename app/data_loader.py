@@ -5,6 +5,10 @@ import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
 
+STANDARD_SHORT_BIO = (
+    "Professional interpreter available for simultaneous and consecutive assignments in the UAE."
+)
+
 
 def _is_truthy(value: str) -> bool:
     return str(value).strip().lower() in {"1", "true", "yes", "y"}
@@ -160,6 +164,7 @@ class SqliteDirectoryRepository(CsvRepository):
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._initialize()
         self._bootstrap_from_csv_if_empty()
+        self._apply_migrations()
 
     def _connect(self) -> sqlite3.Connection:
         connection = sqlite3.connect(self.db_path)
@@ -181,6 +186,13 @@ class SqliteDirectoryRepository(CsvRepository):
                     telegram_link TEXT NOT NULL,
                     whatsapp_link TEXT NOT NULL,
                     is_active INTEGER NOT NULL DEFAULT 1
+                )
+                """
+            )
+            connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS applied_migrations (
+                    migration_key TEXT PRIMARY KEY
                 )
                 """
             )
@@ -219,6 +231,27 @@ class SqliteDirectoryRepository(CsvRepository):
                         1 if person.is_active else 0,
                     ),
                 )
+
+    def _apply_migrations(self) -> None:
+        migration_key = "2026_04_24_standardize_short_bio"
+        with self._connect() as connection:
+            already_applied = connection.execute(
+                "SELECT 1 FROM applied_migrations WHERE migration_key = ?",
+                (migration_key,),
+            ).fetchone()
+            if already_applied:
+                return
+            connection.execute(
+                """
+                UPDATE directory_people
+                SET short_bio = ?
+                """,
+                (STANDARD_SHORT_BIO,),
+            )
+            connection.execute(
+                "INSERT INTO applied_migrations (migration_key) VALUES (?)",
+                (migration_key,),
+            )
 
     def load_people(self) -> list[PersonRecord]:
         with self._connect() as connection:

@@ -4,7 +4,7 @@ import unittest
 import uuid
 from pathlib import Path
 
-from app.data_loader import SqliteDirectoryRepository
+from app.data_loader import STANDARD_SHORT_BIO, SqliteDirectoryRepository
 
 
 class DirectoryRepositoryTests(unittest.TestCase):
@@ -34,6 +34,7 @@ class DirectoryRepositoryTests(unittest.TestCase):
         people = repository.load_people()
         self.assertEqual(len(people), 1)
         self.assertEqual(people[0].full_name, "John Jones")
+        self.assertEqual(people[0].short_bio, STANDARD_SHORT_BIO)
 
         new_id = repository.create_person(
             full_name="Jane Doe",
