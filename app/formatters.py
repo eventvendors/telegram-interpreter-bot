@@ -40,8 +40,6 @@ def format_result_card(person: PersonRecord, index: int) -> str:
         f"<b>Languages:</b> {escape(', '.join(person.languages))}",
         _phone_line(person.phone),
         _email_line(person.email),
-        _link_line("Telegram", person.telegram_link),
-        _link_line("WhatsApp", person.whatsapp_link),
     ]
     return "\n".join(lines)
 
