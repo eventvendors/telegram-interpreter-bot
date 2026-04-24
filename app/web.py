@@ -3,12 +3,16 @@ from __future__ import annotations
 from hashlib import sha256
 from html import escape
 from http.cookies import SimpleCookie
+import re
 from urllib.parse import parse_qs
 from wsgiref.simple_server import make_server
 
 from app.config import Settings
 from app.data_loader import PersonRecord, SqliteDirectoryRepository
 from app.submissions import RegistrationSubmission, StoredSubmission, SubmissionRepository
+
+ALLOWED_PHONE_CHARACTERS = set("0123456789 +-()")
+EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
 def create_web_app(settings: Settings):
@@ -22,16 +26,25 @@ def create_web_app(settings: Settings):
     def application(environ, start_response):
         method = environ.get("REQUEST_METHOD", "GET").upper()
         path = environ.get("PATH_INFO", "/")
+        language_options = _available_language_options(directory_repository)
 
         if method == "GET" and path in {"/", "/info", "/register"}:
-            return _html_response(start_response, 200, _render_register_page())
+            return _html_response(
+                start_response,
+                200,
+                _render_register_page(language_options=language_options),
+            )
         if method == "POST" and path == "/register":
-            submission, errors = _parse_submission(environ)
+            submission, errors = _parse_submission(environ, language_options)
             if errors:
                 return _html_response(
                     start_response,
                     400,
-                    _render_register_page(errors=errors, form_values=submission),
+                    _render_register_page(
+                        errors=errors,
+                        form_values=submission,
+                        language_options=language_options,
+                    ),
                 )
             repository.create_submission(
                 RegistrationSubmission(
@@ -102,12 +115,16 @@ def create_web_app(settings: Settings):
             person = directory_repository.get_person(person_id)
             if person is None:
                 return _html_response(start_response, 404, _render_not_found_page())
-            return _html_response(start_response, 200, _render_directory_edit_page(person))
+            return _html_response(
+                start_response,
+                200,
+                _render_directory_edit_page(person, language_options=language_options),
+            )
         if method == "POST" and path == "/admin/login":
             if not settings.admin_password:
                 return _html_response(start_response, 503, _render_admin_unconfigured_page())
             payload = _parse_form_body(environ)
-            if payload.get("password", "").strip() == settings.admin_password:
+            if _first_value(payload, "password") == settings.admin_password:
                 return _redirect_with_cookie(
                     start_response,
                     "/admin",
@@ -125,30 +142,48 @@ def create_web_app(settings: Settings):
             if not _is_admin_authenticated(environ, settings.admin_password):
                 return _redirect(start_response, "/admin")
             payload = _parse_form_body(environ)
-            action = payload.get("action", "").strip().lower()
+            action = _first_value(payload, "action").lower()
             try:
-                submission_id = int(payload.get("submission_id", "0"))
+                submission_id = int(_first_value(payload, "submission_id") or "0")
             except ValueError:
                 submission_id = 0
             if submission_id > 0 and action in {"approved", "rejected"}:
-                repository.update_status(submission_id, action)
                 if action == "approved":
-                    submission = next(
-                        (
-                            item
-                            for item in repository.list_submissions()
-                            if item.id == submission_id
-                        ),
-                        None,
+                    submission = repository.get_submission(submission_id)
+                    if submission is None:
+                        return _redirect(start_response, "/admin")
+                    _, errors = _validate_directory_values(
+                        {
+                            "full_name": submission.full_name,
+                            "working_languages": submission.working_languages,
+                            "phone_number": submission.phone_number,
+                            "email_address": submission.email_address,
+                            "short_bio": submission.short_bio,
+                        },
+                        language_options,
                     )
-                    if submission is not None:
-                        directory_repository.create_person(
-                            full_name=submission.full_name,
-                            languages=submission.working_languages,
-                            phone=submission.phone_number,
-                            email=submission.email_address,
-                            short_bio=submission.short_bio,
+                    if errors:
+                        pending = repository.list_submissions(status="pending")
+                        return _html_response(
+                            start_response,
+                            400,
+                            _render_admin_page(
+                                "Pending",
+                                "pending",
+                                pending,
+                                error_message="This submission cannot be approved until its data matches the form rules.",
+                            ),
                         )
+                    repository.update_status(submission_id, action)
+                    directory_repository.create_person(
+                        full_name=submission.full_name,
+                        languages=submission.working_languages,
+                        phone=submission.phone_number,
+                        email=submission.email_address,
+                        short_bio=submission.short_bio,
+                    )
+                else:
+                    repository.update_status(submission_id, action)
             return _redirect(start_response, "/admin")
         if method == "POST" and path == "/admin/directory/edit":
             if not settings.admin_password:
@@ -156,9 +191,9 @@ def create_web_app(settings: Settings):
             if not _is_admin_authenticated(environ, settings.admin_password):
                 return _redirect(start_response, "/admin")
             payload = _parse_form_body(environ)
-            form_values, errors = _parse_directory_form(payload)
+            form_values, errors = _parse_directory_form(payload, language_options)
             try:
-                person_id = int(payload.get("person_id", "0"))
+                person_id = int(_first_value(payload, "person_id") or "0")
             except ValueError:
                 person_id = 0
             person = directory_repository.get_person(person_id)
@@ -168,7 +203,12 @@ def create_web_app(settings: Settings):
                 return _html_response(
                     start_response,
                     400,
-                    _render_directory_edit_page(person, errors=errors, form_values=form_values),
+                    _render_directory_edit_page(
+                        person,
+                        errors=errors,
+                        form_values=form_values,
+                        language_options=language_options,
+                    ),
                 )
             directory_repository.update_person(
                 person_id=person_id,
@@ -186,7 +226,7 @@ def create_web_app(settings: Settings):
                 return _redirect(start_response, "/admin")
             payload = _parse_form_body(environ)
             try:
-                person_id = int(payload.get("person_id", "0"))
+                person_id = int(_first_value(payload, "person_id") or "0")
             except ValueError:
                 person_id = 0
             if person_id > 0:
@@ -204,24 +244,61 @@ def serve_web_app(settings: Settings) -> None:
         server.serve_forever()
 
 
-def _parse_submission(environ) -> tuple[dict[str, str], dict[str, str]]:
+def _parse_submission(
+    environ,
+    language_options: list[str],
+) -> tuple[dict[str, str], dict[str, str]]:
     payload = _parse_form_body(environ)
-    return _parse_directory_form(payload)
+    return _parse_directory_form(payload, language_options)
 
 
-def _parse_directory_form(payload: dict[str, str]) -> tuple[dict[str, str], dict[str, str]]:
+def _parse_directory_form(
+    payload: dict[str, list[str]],
+    language_options: list[str],
+) -> tuple[dict[str, str], dict[str, str]]:
     values = {
-        "full_name": payload.get("full_name", "").strip(),
-        "working_languages": payload.get("working_languages", "").strip(),
-        "phone_number": payload.get("phone_number", "").strip(),
-        "email_address": payload.get("email_address", "").strip(),
-        "short_bio": payload.get("short_bio", "").strip(),
+        "full_name": _first_value(payload, "full_name"),
+        "working_languages": _normalize_language_selection(payload),
+        "phone_number": _first_value(payload, "phone_number"),
+        "email_address": _first_value(payload, "email_address"),
+        "short_bio": _first_value(payload, "short_bio"),
     }
+    return _validate_directory_values(values, language_options)
+
+
+def _validate_directory_values(
+    values: dict[str, str],
+    language_options: list[str],
+) -> tuple[dict[str, str], dict[str, str]]:
+    values = dict(values)
 
     errors: dict[str, str] = {}
     for field_name, field_value in values.items():
         if not field_value:
             errors[field_name] = "This field is required."
+
+    if values["full_name"] and len(values["full_name"]) > 40:
+        errors["full_name"] = "Maximum 40 characters."
+
+    if values["working_languages"]:
+        allowed_languages = {language.casefold() for language in language_options}
+        selected_languages = [language.strip() for language in values["working_languages"].split(",")]
+        if not selected_languages or any(not language for language in selected_languages):
+            errors["working_languages"] = "Select at least one language."
+        elif any(language.casefold() not in allowed_languages for language in selected_languages):
+            errors["working_languages"] = "Select languages from the dropdown only."
+
+    if values["phone_number"]:
+        if len(values["phone_number"]) > 20:
+            errors["phone_number"] = "Maximum 20 characters."
+        elif any(character not in ALLOWED_PHONE_CHARACTERS for character in values["phone_number"]):
+            errors["phone_number"] = "Use digits, spaces, +, -, ( and ) only."
+
+    if values["email_address"]:
+        if len(values["email_address"]) > 50:
+            errors["email_address"] = "Maximum 50 characters."
+        elif not EMAIL_PATTERN.match(values["email_address"]):
+            errors["email_address"] = "Enter a valid email address."
 
     if values["short_bio"] and len(values["short_bio"]) > 90:
         errors["short_bio"] = "Maximum 90 characters including spaces."
@@ -229,11 +306,37 @@ def _parse_directory_form(payload: dict[str, str]) -> tuple[dict[str, str], dict
     return values, errors
 
 
-def _parse_form_body(environ) -> dict[str, str]:
+def _parse_form_body(environ) -> dict[str, list[str]]:
     content_length = int(environ.get("CONTENT_LENGTH") or "0")
     raw_body = environ["wsgi.input"].read(content_length).decode("utf-8")
-    payload = parse_qs(raw_body, keep_blank_values=True)
-    return {key: values[0] for key, values in payload.items()}
+    return parse_qs(raw_body, keep_blank_values=True)
+
+
+def _first_value(payload: dict[str, list[str]], key: str) -> str:
+    return payload.get(key, [""])[0].strip()
+
+
+def _normalize_language_selection(payload: dict[str, list[str]]) -> str:
+    selected = [value.strip() for value in payload.get("working_languages", []) if value.strip()]
+    seen: set[str] = set()
+    unique = []
+    for language in selected:
+        normalized = language.casefold()
+        if normalized in seen:
+            continue
+        seen.add(normalized)
+        unique.append(language)
+    return ", ".join(unique)
+
+
+def _available_language_options(directory_repository: SqliteDirectoryRepository) -> list[str]:
+    unique_languages = {
+        language
+        for person in directory_repository.load_people()
+        for language in person.languages
+        if language.strip()
+    }
+    return sorted(unique_languages, key=str.casefold)
 
 
 def _html_response(start_response, status_code: int, html: str):
@@ -331,7 +434,7 @@ def _render_page(title: str, body: str) -> str:
       font-size: 14px;
       color: #b8c7d8;
     }}
-    input, textarea {{
+    input, textarea, select {{
       width: 100%;
       padding: 12px 14px;
       border-radius: 10px;
@@ -339,6 +442,9 @@ def _render_page(title: str, body: str) -> str:
       background: #081321;
       color: #f3f7fb;
       font: inherit;
+    }}
+    select {{
+      min-height: 220px;
     }}
     textarea {{
       min-height: 88px;
@@ -412,8 +518,10 @@ def _render_page(title: str, body: str) -> str:
 def _render_register_page(
     errors: dict[str, str] | None = None,
     form_values: dict[str, str] | None = None,
+    language_options: list[str] | None = None,
 ) -> str:
     errors = errors or {}
+    language_options = language_options or []
     form_values = form_values or {
         "full_name": "",
         "working_languages": "",
@@ -427,11 +535,11 @@ def _render_register_page(
 <div class="line">To be included in the directory, submit the following details:</div>
 <div class="line small">Your submission will be reviewed before approval.</div>
 <form method="post" action="/register">
-  {_render_input("Full name", "full_name", form_values["full_name"], errors.get("full_name"))}
-  {_render_input("Working languages", "working_languages", form_values["working_languages"], errors.get("working_languages"))}
-  {_render_input("Phone number", "phone_number", form_values["phone_number"], errors.get("phone_number"), input_type="tel")}
-  {_render_input("Email address", "email_address", form_values["email_address"], errors.get("email_address"), input_type="email")}
-  {_render_textarea("Short bio/tag line", "short_bio", form_values["short_bio"], errors.get("short_bio"), placeholder="Max 90 characters including spaces")}
+  {_render_input("Full name", "full_name", form_values["full_name"], errors.get("full_name"), maxlength=40)}
+  {_render_language_select(form_values["working_languages"], errors.get("working_languages"), language_options)}
+  {_render_input("Phone number", "phone_number", form_values["phone_number"], errors.get("phone_number"), input_type="tel", maxlength=20)}
+  {_render_input("Email address", "email_address", form_values["email_address"], errors.get("email_address"), input_type="email", maxlength=50)}
+  {_render_textarea("Short bio/tag line", "short_bio", form_values["short_bio"], errors.get("short_bio"), placeholder="Max 90 characters including spaces", maxlength=90)}
   <button class="button" type="submit">Register now</button>
 </form>
 """
@@ -469,7 +577,9 @@ def _render_admin_page(
     title: str,
     active_tab: str,
     submissions: list[StoredSubmission],
+    error_message: str | None = None,
 ) -> str:
+    alert_html = f'<div class="error">{escape(error_message)}</div>' if error_message else ""
     if not submissions:
         cards = f'<div class="line">No {escape(title.lower())} submissions right now.</div>'
     else:
@@ -481,6 +591,7 @@ def _render_admin_page(
     body = f"""
 <h1>Admin review</h1>
 {nav}
+{alert_html}
 <div class="line">{escape(title)} registrations</div>
 {cards}
 """
@@ -574,8 +685,10 @@ def _render_directory_edit_page(
     person: PersonRecord,
     errors: dict[str, str] | None = None,
     form_values: dict[str, str] | None = None,
+    language_options: list[str] | None = None,
 ) -> str:
     errors = errors or {}
+    language_options = language_options or []
     form_values = form_values or {
         "full_name": person.full_name,
         "working_languages": ", ".join(person.languages),
@@ -589,11 +702,11 @@ def _render_directory_edit_page(
 <div class="line">Edit live directory record</div>
 <form method="post" action="/admin/directory/edit">
   <input type="hidden" name="person_id" value="{person.id}">
-  {_render_input("Full name", "full_name", form_values["full_name"], errors.get("full_name"))}
-  {_render_input("Working languages", "working_languages", form_values["working_languages"], errors.get("working_languages"))}
-  {_render_input("Phone number", "phone_number", form_values["phone_number"], errors.get("phone_number"), input_type="tel")}
-  {_render_input("Email address", "email_address", form_values["email_address"], errors.get("email_address"), input_type="email")}
-  {_render_textarea("Short bio/tag line", "short_bio", form_values["short_bio"], errors.get("short_bio"), placeholder="Max 90 characters including spaces")}
+  {_render_input("Full name", "full_name", form_values["full_name"], errors.get("full_name"), maxlength=40)}
+  {_render_language_select(form_values["working_languages"], errors.get("working_languages"), language_options)}
+  {_render_input("Phone number", "phone_number", form_values["phone_number"], errors.get("phone_number"), input_type="tel", maxlength=20)}
+  {_render_input("Email address", "email_address", form_values["email_address"], errors.get("email_address"), input_type="email", maxlength=50)}
+  {_render_textarea("Short bio/tag line", "short_bio", form_values["short_bio"], errors.get("short_bio"), placeholder="Max 90 characters including spaces", maxlength=90)}
   <button class="button" type="submit">Update record</button>
 </form>
 <a class="button" href="/admin/directory">Back to directory</a>
@@ -624,12 +737,14 @@ def _render_input(
     error: str | None,
     input_type: str = "text",
     placeholder: str = "",
+    maxlength: int | None = None,
 ) -> str:
     error_html = f'<div class="error">{escape(error)}</div>' if error else ""
+    maxlength_attr = f' maxlength="{maxlength}"' if maxlength is not None else ""
     return f"""
 <div class="block">
   <label class="label" for="{escape(name)}">{escape(label)}</label>
-  <input id="{escape(name)}" name="{escape(name)}" type="{escape(input_type)}" value="{escape(value, quote=True)}" placeholder="{escape(placeholder, quote=True)}">
+  <input id="{escape(name)}" name="{escape(name)}" type="{escape(input_type)}" value="{escape(value, quote=True)}" placeholder="{escape(placeholder, quote=True)}"{maxlength_attr}>
   {error_html}
 </div>
 """
@@ -641,12 +756,39 @@ def _render_textarea(
     value: str,
     error: str | None,
     placeholder: str = "",
+    maxlength: int | None = None,
 ) -> str:
     error_html = f'<div class="error">{escape(error)}</div>' if error else ""
+    maxlength_attr = f' maxlength="{maxlength}"' if maxlength is not None else ""
     return f"""
 <div class="block">
   <label class="label" for="{escape(name)}">{escape(label)}</label>
-  <textarea id="{escape(name)}" name="{escape(name)}" placeholder="{escape(placeholder, quote=True)}">{escape(value)}</textarea>
+  <textarea id="{escape(name)}" name="{escape(name)}" placeholder="{escape(placeholder, quote=True)}"{maxlength_attr}>{escape(value)}</textarea>
+  {error_html}
+</div>
+"""
+
+
+def _render_language_select(
+    selected_value: str,
+    error: str | None,
+    language_options: list[str],
+) -> str:
+    error_html = f'<div class="error">{escape(error)}</div>' if error else ""
+    selected_languages = {
+        language.strip().casefold() for language in selected_value.split(",") if language.strip()
+    }
+    option_html = "".join(
+        f'<option value="{escape(language, quote=True)}"{" selected" if language.casefold() in selected_languages else ""}>{escape(language)}</option>'
+        for language in language_options
+    )
+    return f"""
+<div class="block">
+  <label class="label" for="working_languages">Working languages</label>
+  <div class="line small">Choose from the approved dropdown only.</div>
+  <select id="working_languages" name="working_languages" multiple size="8">
+    {option_html}
+  </select>
   {error_html}
 </div>
 """

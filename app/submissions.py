@@ -114,6 +114,29 @@ class SubmissionRepository:
             for row in rows
         ]
 
+    def get_submission(self, submission_id: int) -> StoredSubmission | None:
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT id, full_name, working_languages, phone_number, email_address, short_bio, status, submitted_at
+                FROM registration_submissions
+                WHERE id = ?
+                """,
+                (submission_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        return StoredSubmission(
+            id=int(row["id"]),
+            full_name=row["full_name"],
+            working_languages=row["working_languages"],
+            phone_number=row["phone_number"],
+            email_address=row["email_address"],
+            short_bio=row["short_bio"],
+            status=row["status"],
+            submitted_at=row["submitted_at"],
+        )
+
     def update_status(self, submission_id: int, status: str) -> None:
         with self._connect() as connection:
             connection.execute(
