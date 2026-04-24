@@ -46,13 +46,13 @@ class SearchPage:
 def search_people(
     people: list[PersonRecord],
     rules: list[PriorityRule],
-    service_type: str,
+    service_type: str | None,
     language_one: str,
     language_two: str,
     page: int = 1,
     page_size: int = 5,
 ) -> SearchPage:
-    service = canonical_service_type(service_type)
+    service = canonical_service_type(service_type) if service_type is not None else None
     requested_key = make_language_pair_key(language_one, language_two)
     requested_languages = {
         normalize_text(canonical_language(language_one)),
@@ -63,7 +63,9 @@ def search_people(
         person
         for person in people
         if person.is_active
-        and canonical_service_type(person.service_type) == service
+        and (
+            service is None or canonical_service_type(person.service_type) == service
+        )
         and requested_languages.issubset({normalize_text(language) for language in person.languages})
     ]
 
@@ -72,7 +74,7 @@ def search_people(
             rule
             for rule in rules
             if rule.is_active
-            and canonical_service_type(rule.service_type) == service
+            and (service is None or canonical_service_type(rule.service_type) == service)
             and normalize_text(rule.language_pair_key) == normalize_text(requested_key)
         ],
         key=lambda rule: (rule.priority_rank, rule.id),

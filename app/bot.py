@@ -16,9 +16,8 @@ from app.keyboards import (
     language_keyboard,
     other_languages_keyboard,
     results_keyboard,
-    service_type_keyboard,
 )
-from app.search import SearchPage, canonical_language, canonical_service_type, search_people
+from app.search import SearchPage, canonical_language, search_people
 
 
 logging.basicConfig(
@@ -27,7 +26,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-SERVICE_TYPE = "service_type"
 FIRST_LANGUAGE = "first_language"
 SECOND_LANGUAGE = "second_language"
 
@@ -230,29 +228,20 @@ class BotRunner:
         state = self.user_state.get(message.chat_id, {})
         current_step = state.get("step")
 
-        if current_step == SERVICE_TYPE:
-            self.client.send_message(
-                message.chat_id,
-                "Please use the buttons in the chat to choose Interpreter or Translator.",
-                reply_markup=service_type_keyboard(),
-            )
-            return
         if current_step == FIRST_LANGUAGE:
             self.client.send_message(
                 message.chat_id,
                 "Please choose the FIRST language using the buttons in the chat.",
                 reply_markup=language_keyboard(
                     step="lang1",
-                    include_other_languages=self._has_other_languages(
-                        service_type=state["service_type"]
-                    ),
+                    include_other_languages=self._has_other_languages(),
                 ),
             )
             return
         if current_step == SECOND_LANGUAGE:
             self.client.send_message(
                 message.chat_id,
-                "Please choose the second language using the buttons in the chat.",
+                "Please choose the SECOND language using the buttons in the chat.",
                 reply_markup=language_keyboard(
                     step="lang2",
                     selected_language=state["language_one"],
@@ -268,11 +257,6 @@ class BotRunner:
 
     def handle_callback(self, callback: CallbackPayload) -> None:
         self.client.answer_callback_query(callback.callback_query_id)
-
-        if callback.data.startswith("service:"):
-            service_type = callback.data.split(":", maxsplit=1)[1]
-            self.handle_service_type(callback.chat_id, service_type)
-            return
 
         if callback.data.startswith("lang1:"):
             language = callback.data.split(":", maxsplit=1)[1]
@@ -323,22 +307,24 @@ class BotRunner:
             self.start_search(callback.chat_id)
 
     def start_search(self, chat_id: int) -> None:
-        self.user_state[chat_id] = {"step": SERVICE_TYPE}
+        self.user_state[chat_id] = {"step": FIRST_LANGUAGE}
         self.client.send_message(
             chat_id,
             (
                 "Welcome to Interpreter Finder.\n\n"
                 "I help you find interpreters and translators by language pair.\n\n"
                 "<b>How it works</b>\n"
-                "1. Choose <b>Interpreter</b> or <b>Translator</b>\n"
-                "2. Choose the first language\n"
-                "3. Choose the second language\n"
-                "4. I will show matching professionals with contact details\n\n"
+                "1. Choose the first language\n"
+                "2. Choose the second language\n"
+                "3. I will show matching professionals with contact details\n\n"
                 "<b>Example</b>\n"
-                "Interpreter -> Russian -> English\n\n"
-                "Choose the service type to begin."
+                "Arabic -> English\n\n"
+                "Choose the languages to begin."
             ),
-            reply_markup=service_type_keyboard(),
+            reply_markup=language_keyboard(
+                step="lang1",
+                include_other_languages=self._has_other_languages(),
+            ),
         )
 
     def send_help(self, chat_id: int) -> None:
@@ -348,9 +334,8 @@ class BotRunner:
                 "<b>Quick Guide</b>\n"
                 "Use /start to begin a new search.\n\n"
                 "<b>Search steps</b>\n"
-                "1. Choose Interpreter or Translator\n"
-                "2. Choose the first language\n"
-                "3. Choose the second language\n\n"
+                "1. Choose the first language\n"
+                "2. Choose the second language\n\n"
                 "<b>Useful commands</b>\n"
                 "/languages - show all available languages\n"
                 "/about - learn what this bot does\n"
@@ -371,7 +356,6 @@ class BotRunner:
             (
                 "This bot helps users find interpreters and translators.\n\n"
                 "Current MVP filters:\n"
-                "- service type\n"
                 "- language pair\n\n"
                 "Search direction is ignored in this MVP, so English + Arabic is the same as Arabic + English."
             ),
@@ -385,42 +369,20 @@ class BotRunner:
             reply_markup={"remove_keyboard": True},
         )
 
-    def handle_service_type(self, chat_id: int, raw_service_type: str) -> None:
-        service_type = canonical_service_type(raw_service_type)
-        self.user_state[chat_id] = {
-            "step": FIRST_LANGUAGE,
-            "service_type": service_type,
-            "available_languages": self.repository.available_languages(service_type=service_type),
-        }
-        self.client.send_message(
-            chat_id,
-            (
-                "Choose the FIRST language using the buttons in the chat.\n\n"
-                "Use Other Languages to see additional available options."
-            ),
-            reply_markup=language_keyboard(
-                step="lang1",
-                include_other_languages=self._has_other_languages(service_type=service_type),
-            ),
-        )
-
     def handle_first_language(self, chat_id: int, raw_language: str) -> None:
         state = self.user_state[chat_id]
         try:
             language = self._validate_language_input(
                 raw_language,
-                service_type=state["service_type"],
                 allow_un_language=True,
             )
         except ValueError:
             self.client.send_message(
                 chat_id,
-                "Please choose the first language using the buttons in the chat.",
+                "Please choose the FIRST language using the buttons in the chat.",
                 reply_markup=language_keyboard(
                     step="lang1",
-                    include_other_languages=self._has_other_languages(
-                        service_type=state["service_type"]
-                    ),
+                    include_other_languages=self._has_other_languages(),
                 ),
             )
             return
@@ -428,7 +390,6 @@ class BotRunner:
         state["language_one"] = language
         state["step"] = SECOND_LANGUAGE
         state["available_languages"] = self.repository.available_languages(
-            service_type=state["service_type"],
             required_language=language,
             exclude_language=language,
         )
@@ -451,7 +412,6 @@ class BotRunner:
         try:
             language = self._validate_language_input(
                 raw_language,
-                service_type=state["service_type"],
                 required_language=state["language_one"],
                 exclude_language=state["language_one"],
                 other_language=state["language_one"],
@@ -474,7 +434,7 @@ class BotRunner:
         self.send_results(chat_id, search_page)
 
     def handle_pagination(self, chat_id: int, message_id: int, page: int) -> None:
-        if chat_id not in self.user_state or "service_type" not in self.user_state[chat_id]:
+        if chat_id not in self.user_state or "language_one" not in self.user_state[chat_id]:
             self.client.send_message(chat_id, "Your last search has expired. Use /start to search again.")
             return
 
@@ -491,7 +451,7 @@ class BotRunner:
         return search_people(
             people=self.repository.load_people(),
             rules=self.repository.load_priority_rules(),
-            service_type=state["service_type"],
+            service_type=None,
             language_one=state["language_one"],
             language_two=state["language_two"],
             page=page,
@@ -518,9 +478,7 @@ class BotRunner:
                 "Choose the FIRST language.",
                 reply_markup=language_keyboard(
                     step="lang1",
-                    include_other_languages=self._has_other_languages(
-                        service_type=state["service_type"]
-                    ),
+                    include_other_languages=self._has_other_languages(),
                 ),
             )
             return
@@ -538,7 +496,7 @@ class BotRunner:
     def show_other_languages(self, chat_id: int, step: str) -> None:
         state = self.user_state[chat_id]
         if step == FIRST_LANGUAGE:
-            other_languages = self._other_languages(service_type=state["service_type"])
+            other_languages = self._other_languages()
             if not other_languages:
                 self.client.send_message(chat_id, "No other languages are available right now.")
                 return
@@ -550,7 +508,6 @@ class BotRunner:
             return
 
         other_languages = self._other_languages(
-            service_type=state["service_type"],
             required_language=state["language_one"],
             exclude_language=state["language_one"],
         )
@@ -565,7 +522,7 @@ class BotRunner:
 
     def _other_languages(
         self,
-        service_type: str,
+        service_type: str | None = None,
         required_language: str | None = None,
         exclude_language: str | None = None,
     ) -> list[str]:
@@ -580,7 +537,7 @@ class BotRunner:
 
     def _has_other_languages(
         self,
-        service_type: str,
+        service_type: str | None = None,
         required_language: str | None = None,
         exclude_language: str | None = None,
     ) -> bool:

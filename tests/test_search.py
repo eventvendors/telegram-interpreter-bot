@@ -79,21 +79,21 @@ class SearchTests(unittest.TestCase):
         result = search_people(
             people=self.people,
             rules=self.rules,
-            service_type="Interpreter",
+            service_type=None,
             language_one="French",
             language_two="English",
         )
         self.assertEqual([person.id for person in result.items], [1, 2])
 
-    def test_service_type_must_match(self) -> None:
+    def test_search_now_includes_both_interpreters_and_translators(self) -> None:
         result = search_people(
             people=self.people,
             rules=self.rules,
-            service_type="Translator",
-            language_one="English",
-            language_two="French",
+            service_type=None,
+            language_one="Arabic",
+            language_two="English",
         )
-        self.assertEqual(result.total_results, 0)
+        self.assertEqual(result.total_results, 1)
 
     def test_duplicate_language_is_rejected(self) -> None:
         with self.assertRaises(ValueError):
@@ -103,7 +103,7 @@ class SearchTests(unittest.TestCase):
         result = search_people(
             people=self.people,
             rules=self.rules,
-            service_type="Interpreter",
+            service_type=None,
             language_one="English",
             language_two="French",
         )
