@@ -309,13 +309,13 @@ class BotRunner:
 
     def start_search(self, chat_id: int) -> None:
         self.user_state[chat_id] = {"step": FIRST_LANGUAGE}
-        info_link = escape(self.settings.public_base_url + "/info", quote=True)
+        info_link = escape(self.settings.public_base_url + "/register", quote=True)
         self.client.send_message(
             chat_id,
             (
                 "Welcome to UAE Translator Finder.\n\n"
                 "I help you find translators/interpreters by language pair.\n"
-                f'To learn more or register as a translator/interpreter, <a href="{info_link}">click here</a>.\n\n'
+                f'To register as a translator/interpreter, <a href="{info_link}">click here</a>.\n\n'
                 "<b>How it works</b>\n"
                 "1. Choose the first language\n"
                 "2. Choose the second language\n"

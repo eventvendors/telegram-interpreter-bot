@@ -8,28 +8,6 @@ from app.config import Settings
 from app.submissions import RegistrationSubmission, SubmissionRepository
 
 
-INFO_PAGE_TEXT = """UAE Translator Finder
-
-This bot helps users quickly find translators and interpreters by language pair.
-
-For users
-Use the bot to find a suitable translator/interpreter.
-
-For translators and interpreters
-To be included in the directory, submit your details for review.
-
-All submissions are reviewed before approval.
-
-Registration details
-Please prepare the following:
-
-full name
-working languages
-phone number
-email address
-short bio/tag line - max 90 characters including spaces"""
-
-
 def create_web_app(settings: Settings):
     repository = SubmissionRepository(settings.submissions_db)
 
@@ -37,9 +15,7 @@ def create_web_app(settings: Settings):
         method = environ.get("REQUEST_METHOD", "GET").upper()
         path = environ.get("PATH_INFO", "/")
 
-        if method == "GET" and path in {"/", "/info"}:
-            return _html_response(start_response, 200, _render_info_page())
-        if method == "GET" and path == "/register":
+        if method == "GET" and path in {"/", "/info", "/register"}:
             return _html_response(start_response, 200, _render_register_page())
         if method == "POST" and path == "/register":
             submission, errors = _parse_submission(environ)
@@ -212,16 +188,6 @@ def _render_page(title: str, body: str) -> str:
 </html>"""
 
 
-def _render_info_page() -> str:
-    info_lines = "".join(f'<div class="line">{escape(line)}</div>' for line in INFO_PAGE_TEXT.splitlines())
-    body = (
-        "<h1>UAE Translator Finder</h1>"
-        f"{info_lines}"
-        '<a class="button" href="/register">Register now</a>'
-    )
-    return _render_page("UAE Translator Finder", body)
-
-
 def _render_register_page(
     errors: dict[str, str] | None = None,
     form_values: dict[str, str] | None = None,
@@ -236,16 +202,17 @@ def _render_register_page(
     }
     body = f"""
 <h1>UAE Translator Finder</h1>
-<div class="line">Registration form</div>
-<div class="line small">All submissions are reviewed before approval.</div>
+<div class="line">This bot helps users quickly find translators and interpreters by language pair.</div>
+<div class="line">To be included in the directory, submit the following details:</div>
+<div class="line">full name<br>working languages<br>phone number<br>email address<br>short bio/tag line - max 90 characters including spaces</div>
+<div class="line small">Your submission will be reviewed before approval.</div>
 <form method="post" action="/register">
   {_render_input("Full name", "full_name", form_values["full_name"], errors.get("full_name"))}
   {_render_input("Working languages", "working_languages", form_values["working_languages"], errors.get("working_languages"))}
   {_render_input("Phone number", "phone_number", form_values["phone_number"], errors.get("phone_number"), input_type="tel")}
   {_render_input("Email address", "email_address", form_values["email_address"], errors.get("email_address"), input_type="email")}
   {_render_textarea("Short bio/tag line", "short_bio", form_values["short_bio"], errors.get("short_bio"))}
-  <div class="small">Max 90 characters including spaces.</div>
-  <button class="button" type="submit">Send</button>
+  <button class="button" type="submit">Register now</button>
 </form>
 """
     return _render_page("Register", body)
