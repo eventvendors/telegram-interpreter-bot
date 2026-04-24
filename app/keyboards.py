@@ -59,16 +59,13 @@ def results_keyboard(
     rows: list[list[dict]] = []
     if total_pages > 1:
         rows.append(
-            [{"text": f"Page {current_page} of {total_pages}", "callback_data": "page-status"}]
-        )
-        rows.append(
             [
                 (
                     {"text": "Previous", "callback_data": f"page:{current_page - 1}"}
                     if current_page > 1
                     else {"text": "Previous", "callback_data": "page-status"}
                 ),
-                {"text": f"Page {current_page}", "callback_data": "page-status"},
+                {"text": f"Page {current_page} of {total_pages}", "callback_data": "page-status"},
                 (
                     {"text": "Next", "callback_data": f"page:{current_page + 1}"}
                     if current_page < total_pages
