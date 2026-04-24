@@ -326,7 +326,8 @@ class BotRunner:
                 "3. I will show matching professionals with contact details\n\n"
                 "<b>Example</b>\n"
                 "Arabic -> English\n\n"
-                "Choose the FIRST language to begin."
+                "Choose the FIRST language using the buttons in the chat.\n"
+                "Use Other Languages to see additional available options."
             ),
             reply_markup=language_keyboard(
                 step="lang1",
@@ -482,7 +483,10 @@ class BotRunner:
         if step == FIRST_LANGUAGE:
             self.client.send_message(
                 chat_id,
-                "Choose the FIRST language.",
+                (
+                    "Choose the FIRST language using the buttons in the chat.\n"
+                    "Use Other Languages to see additional available options."
+                ),
                 reply_markup=language_keyboard(
                     step="lang1",
                     include_other_languages=self._has_other_languages(),
