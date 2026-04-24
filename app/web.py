@@ -609,7 +609,7 @@ def _render_success_page() -> str:
 <h1>Thank you</h1>
 <div class="line">Your submission has been received.</div>
 <div class="line">It is now pending review.</div>
-<a class="button" href="/register">Back to registration</a>
+<button class="button" type="button" onclick="window.close()">Close this window</button>
 """
     return _render_page("Submission received", body)
 
