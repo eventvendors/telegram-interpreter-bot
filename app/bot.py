@@ -7,7 +7,6 @@ import urllib.error
 import urllib.request
 from dataclasses import dataclass
 from html import escape
-from textwrap import fill
 from typing import Any
 
 from app.config import Settings
@@ -30,14 +29,6 @@ logger = logging.getLogger(__name__)
 
 FIRST_LANGUAGE = "first_language"
 SECOND_LANGUAGE = "second_language"
-CHAT_WRAP_WIDTH = 44
-
-
-def _wrap_text(value: str, width: int = CHAT_WRAP_WIDTH) -> str:
-    normalized = " ".join(str(value).split())
-    if not normalized:
-        return ""
-    return fill(normalized, width=width)
 
 
 @dataclass
@@ -327,12 +318,12 @@ class BotRunner:
             chat_id,
             (
                 "Welcome to UAE Translator Finder.\n\n"
-                f"{_wrap_text('I help you find translators/interpreters by language pair.')}\n"
+                "I help you find translators/interpreters by language pair.\n"
                 f'To register as a translator/interpreter, <a href="{info_link}">click here</a>.\n\n'
                 "<b>How it works</b>\n"
                 "1. Choose the first language\n"
                 "2. Choose the second language\n"
-                f"3. {_wrap_text('I will show matching professionals with contact details')}\n\n"
+                "3. I will show matching professionals with contact details\n\n"
                 "<b>Example</b>\n"
                 "Arabic -> English\n\n"
                 "Choose the FIRST language to begin."
@@ -412,9 +403,9 @@ class BotRunner:
         self.client.send_message(
             chat_id,
             (
-                f"{_wrap_text('Choose the SECOND language using the buttons in the chat.')}\n\n"
+                "Choose the SECOND language using the buttons in the chat.\n\n"
                 f"Your FIRST selected language is {language}.\n"
-                f"{_wrap_text('Use Other Languages to see additional available options.')}"
+                "Use Other Languages to see additional available options."
             ),
             reply_markup=language_keyboard(
                 step="lang2",
@@ -518,7 +509,7 @@ class BotRunner:
                 return
             self.client.send_message(
                 chat_id,
-                _wrap_text("Other available first-language options:"),
+                "Other available first-language options:",
                 reply_markup=other_languages_keyboard(other_languages, step="lang1"),
             )
             return
@@ -532,7 +523,7 @@ class BotRunner:
             return
         self.client.send_message(
             chat_id,
-            _wrap_text("Other available second-language options:"),
+            "Other available second-language options:",
             reply_markup=other_languages_keyboard(other_languages, step="lang2"),
         )
 

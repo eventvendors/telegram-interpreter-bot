@@ -1,19 +1,9 @@
 from __future__ import annotations
 
 from html import escape
-from textwrap import fill
 
 from app.data_loader import PersonRecord
 from app.search import SearchPage
-
-WRAP_WIDTH = 44
-
-
-def _wrap_text(value: str, width: int = WRAP_WIDTH) -> str:
-    normalized = " ".join(str(value).split())
-    if not normalized:
-        return ""
-    return fill(normalized, width=width)
 
 
 def _contact_line(label: str, value: str) -> str:
@@ -46,8 +36,8 @@ def _email_line(value: str) -> str:
 def format_result_card(person: PersonRecord, index: int) -> str:
     lines = [
         f"<b>{index}. {escape(person.full_name)}</b>",
-        escape(_wrap_text(person.short_bio)),
-        f"<b>Languages:</b> {escape(_wrap_text(', '.join(person.languages)))}",
+        escape(person.short_bio),
+        f"<b>Languages:</b> {escape(', '.join(person.languages))}",
         _phone_line(person.phone),
         _email_line(person.email),
     ]
