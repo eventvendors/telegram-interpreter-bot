@@ -25,7 +25,7 @@ class WebValidationTests(unittest.TestCase):
                 "working_languages": "Arabic, MadeUp",
                 "phone_number": "+971 50 123 4567 ext",
                 "email_address": "not-an-email",
-                "short_bio": "B" * 91,
+                "short_bio": "B" * 127,
             },
             ["Arabic", "English", "Russian"],
         )
@@ -43,7 +43,7 @@ class WebValidationTests(unittest.TestCase):
         self.assertEqual(errors["email_address"], "Enter a valid email address.")
         self.assertEqual(
             errors["short_bio"],
-            "Maximum 90 characters including spaces.",
+            "Maximum 126 characters including spaces.",
         )
 
     def test_validate_directory_values_limits_languages_to_four(self) -> None:

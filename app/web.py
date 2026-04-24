@@ -345,8 +345,8 @@ def _validate_directory_values(
         elif not EMAIL_PATTERN.match(values["email_address"]):
             errors["email_address"] = "Enter a valid email address."
 
-    if values["short_bio"] and len(values["short_bio"]) > 90:
-        errors["short_bio"] = "Maximum 90 characters including spaces."
+    if values["short_bio"] and len(values["short_bio"]) > 126:
+        errors["short_bio"] = "Maximum 126 characters including spaces."
 
     return values, errors
 
@@ -632,7 +632,7 @@ def _render_register_page(
   {_render_language_select(form_values["working_languages"], errors.get("working_languages"), language_options)}
   {_render_input("Phone number", "phone_number", form_values["phone_number"], errors.get("phone_number"), input_type="tel", maxlength=20)}
   {_render_input("Email address", "email_address", form_values["email_address"], errors.get("email_address"), input_type="email", maxlength=50)}
-  {_render_textarea("Short bio/tag line", "short_bio", form_values["short_bio"], errors.get("short_bio"), placeholder="Max 90 characters including spaces", maxlength=90)}
+  {_render_textarea("Short bio/tag line", "short_bio", form_values["short_bio"], errors.get("short_bio"), placeholder="Max 126 characters including spaces", maxlength=126)}
   <button class="button" type="submit">Register now</button>
 </form>
 """
@@ -829,7 +829,7 @@ def _render_directory_edit_page(
   {_render_language_select(form_values["working_languages"], errors.get("working_languages"), language_options)}
   {_render_input("Phone number", "phone_number", form_values["phone_number"], errors.get("phone_number"), input_type="tel", maxlength=20)}
   {_render_input("Email address", "email_address", form_values["email_address"], errors.get("email_address"), input_type="email", maxlength=50)}
-  {_render_textarea("Short bio/tag line", "short_bio", form_values["short_bio"], errors.get("short_bio"), placeholder="Max 90 characters including spaces", maxlength=90)}
+  {_render_textarea("Short bio/tag line", "short_bio", form_values["short_bio"], errors.get("short_bio"), placeholder="Max 126 characters including spaces", maxlength=126)}
   <button class="button" type="submit">Update record</button>
 </form>
 <a class="button" href="/admin/directory">Back to directory</a>
@@ -860,7 +860,7 @@ def _render_directory_create_page(
   {_render_language_select(form_values["working_languages"], errors.get("working_languages"), language_options)}
   {_render_input("Phone number", "phone_number", form_values["phone_number"], errors.get("phone_number"), input_type="tel", maxlength=20)}
   {_render_input("Email address", "email_address", form_values["email_address"], errors.get("email_address"), input_type="email", maxlength=50)}
-  {_render_textarea("Short bio/tag line", "short_bio", form_values["short_bio"], errors.get("short_bio"), placeholder="Max 90 characters including spaces", maxlength=90)}
+  {_render_textarea("Short bio/tag line", "short_bio", form_values["short_bio"], errors.get("short_bio"), placeholder="Max 126 characters including spaces", maxlength=126)}
   <button class="button" type="submit">Add interpreter</button>
 </form>
 <a class="button" href="/admin/directory">Back to directory</a>
