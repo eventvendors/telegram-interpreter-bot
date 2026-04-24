@@ -13,6 +13,14 @@ from app.submissions import RegistrationSubmission, StoredSubmission, Submission
 
 ALLOWED_PHONE_CHARACTERS = set("0123456789 +-()")
 EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+REGISTRATION_LANGUAGE_OPTIONS = [
+    "Hindi",
+    "Japanese",
+    "Kazakh",
+    "Ukrainian",
+    "Urdu",
+    "Uzbek",
+]
 
 
 def create_web_app(settings: Settings):
@@ -285,6 +293,8 @@ def _validate_directory_values(
         selected_languages = [language.strip() for language in values["working_languages"].split(",")]
         if not selected_languages or any(not language for language in selected_languages):
             errors["working_languages"] = "Select at least one language."
+        elif len(selected_languages) > 4:
+            errors["working_languages"] = "Maximum 4 languages."
         elif any(language.casefold() not in allowed_languages for language in selected_languages):
             errors["working_languages"] = "Select languages from the dropdown only."
 
@@ -336,6 +346,7 @@ def _available_language_options(directory_repository: SqliteDirectoryRepository)
         for language in person.languages
         if language.strip()
     }
+    unique_languages.update(REGISTRATION_LANGUAGE_OPTIONS)
     return sorted(unique_languages, key=str.casefold)
 
 
@@ -709,12 +720,13 @@ def _render_directory_page(people: list[PersonRecord]) -> str:
 
 
 def _render_directory_table(people: list[PersonRecord]) -> str:
-    rows = "".join(_render_directory_row(person) for person in people)
+    rows = "".join(_render_directory_row(index, person) for index, person in enumerate(people, start=1))
     return f"""
 <div class="table-wrap">
   <table>
     <thead>
       <tr>
+        <th>#</th>
         <th>Name</th>
         <th>Languages</th>
         <th>Phone</th>
@@ -731,9 +743,10 @@ def _render_directory_table(people: list[PersonRecord]) -> str:
 """
 
 
-def _render_directory_row(person: PersonRecord) -> str:
+def _render_directory_row(index: int, person: PersonRecord) -> str:
     return f"""
 <tr>
+  <td>{index}</td>
   <td>{escape(person.full_name)}</td>
   <td>{escape(", ".join(person.languages))}</td>
   <td>{escape(person.phone or "Not provided")}</td>
@@ -859,7 +872,7 @@ def _render_language_select(
     return f"""
 <div class="block">
   <label class="label" for="working_languages">Working languages</label>
-  <div class="line small">Choose from the approved dropdown only.</div>
+  <div class="line small">Choose from the approved dropdown only. Maximum 4 languages.</div>
   <select id="working_languages" name="working_languages" multiple size="8">
     {option_html}
   </select>
