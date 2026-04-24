@@ -378,7 +378,8 @@ def _redirect_with_cookie(start_response, location: str, key: str, value: str):
     return [b""]
 
 
-def _render_page(title: str, body: str) -> str:
+def _render_page(title: str, body: str, wide: bool = False) -> str:
+    main_width = "1200px" if wide else "620px"
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -399,12 +400,12 @@ def _render_page(title: str, body: str) -> str:
       color: #f3f7fb;
       font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
       padding: 24px;
     }}
     main {{
-      width: min(100%, 620px);
+      width: min(100%, {main_width});
       background: #0d1b2e;
       border: 1px solid #22344b;
       border-radius: 14px;
@@ -492,11 +493,13 @@ def _render_page(title: str, body: str) -> str:
       border-collapse: collapse;
     }}
     th, td {{
-      padding: 12px 10px;
+      padding: 8px 10px;
       border-bottom: 1px solid #22344b;
       vertical-align: top;
       text-align: left;
-      font-size: 14px;
+      font-size: 13px;
+      line-height: 1.35;
+      word-break: break-word;
     }}
     th {{
       color: #b8c7d8;
@@ -534,7 +537,7 @@ def _render_page(title: str, body: str) -> str:
     .row-actions {{
       display: flex;
       gap: 8px;
-      min-width: 180px;
+      min-width: 140px;
     }}
     .row-actions form {{
       margin: 0;
@@ -614,7 +617,7 @@ def _render_admin_login_page(error: str | None = None) -> str:
   <button class="button" type="submit">Open admin page</button>
 </form>
 """
-    return _render_page("Admin login", body)
+    return _render_page("Admin login", body, wide=True)
 
 
 def _render_admin_page(
@@ -639,7 +642,7 @@ def _render_admin_page(
 <div class="line">{escape(title)} registrations</div>
 {cards}
 """
-    return _render_page("Admin review", body)
+    return _render_page("Admin review", body, wide=True)
 
 
 def _render_submission_card(submission: StoredSubmission, show_actions: bool) -> str:
@@ -702,7 +705,7 @@ def _render_directory_page(people: list[PersonRecord]) -> str:
 <div class="line small">Records are shown in alphabetical order.</div>
 {content}
 """
-    return _render_page("Live directory", body)
+    return _render_page("Live directory", body, wide=True)
 
 
 def _render_directory_table(people: list[PersonRecord]) -> str:
@@ -782,7 +785,7 @@ def _render_directory_edit_page(
 </form>
 <a class="button" href="/admin/directory">Back to directory</a>
 """
-    return _render_page("Edit directory record", body)
+    return _render_page("Edit directory record", body, wide=True)
 
 
 def _render_admin_unconfigured_page() -> str:
@@ -790,7 +793,7 @@ def _render_admin_unconfigured_page() -> str:
 <h1>Admin review</h1>
 <div class="line">ADMIN_PASSWORD is not configured yet.</div>
 """
-    return _render_page("Admin unavailable", body)
+    return _render_page("Admin unavailable", body, wide=True)
 
 
 def _render_not_found_page() -> str:
