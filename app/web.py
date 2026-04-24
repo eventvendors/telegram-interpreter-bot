@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+from hashlib import sha256
 from html import escape
+from http.cookies import SimpleCookie
 from urllib.parse import parse_qs
 from wsgiref.simple_server import make_server
 
 from app.config import Settings
-from app.submissions import RegistrationSubmission, SubmissionRepository
+from app.submissions import RegistrationSubmission, StoredSubmission, SubmissionRepository
 
 
 def create_web_app(settings: Settings):
@@ -37,6 +39,43 @@ def create_web_app(settings: Settings):
             return _redirect(start_response, "/register/success")
         if method == "GET" and path == "/register/success":
             return _html_response(start_response, 200, _render_success_page())
+        if method == "GET" and path == "/admin":
+            if not settings.admin_password:
+                return _html_response(start_response, 503, _render_admin_unconfigured_page())
+            if _is_admin_authenticated(environ, settings.admin_password):
+                pending = repository.list_submissions(status="pending")
+                return _html_response(start_response, 200, _render_admin_page(pending))
+            return _html_response(start_response, 200, _render_admin_login_page())
+        if method == "POST" and path == "/admin/login":
+            if not settings.admin_password:
+                return _html_response(start_response, 503, _render_admin_unconfigured_page())
+            payload = _parse_form_body(environ)
+            if payload.get("password", "").strip() == settings.admin_password:
+                return _redirect_with_cookie(
+                    start_response,
+                    "/admin",
+                    "admin_auth",
+                    _auth_cookie_value(settings.admin_password),
+                )
+            return _html_response(
+                start_response,
+                401,
+                _render_admin_login_page(error="Incorrect password."),
+            )
+        if method == "POST" and path == "/admin/action":
+            if not settings.admin_password:
+                return _html_response(start_response, 503, _render_admin_unconfigured_page())
+            if not _is_admin_authenticated(environ, settings.admin_password):
+                return _redirect(start_response, "/admin")
+            payload = _parse_form_body(environ)
+            action = payload.get("action", "").strip().lower()
+            try:
+                submission_id = int(payload.get("submission_id", "0"))
+            except ValueError:
+                submission_id = 0
+            if submission_id > 0 and action in {"approved", "rejected"}:
+                repository.update_status(submission_id, action)
+            return _redirect(start_response, "/admin")
 
         return _html_response(start_response, 404, _render_not_found_page())
 
@@ -50,16 +89,14 @@ def serve_web_app(settings: Settings) -> None:
 
 
 def _parse_submission(environ) -> tuple[dict[str, str], dict[str, str]]:
-    content_length = int(environ.get("CONTENT_LENGTH") or "0")
-    raw_body = environ["wsgi.input"].read(content_length).decode("utf-8")
-    payload = parse_qs(raw_body, keep_blank_values=True)
+    payload = _parse_form_body(environ)
 
     values = {
-        "full_name": payload.get("full_name", [""])[0].strip(),
-        "working_languages": payload.get("working_languages", [""])[0].strip(),
-        "phone_number": payload.get("phone_number", [""])[0].strip(),
-        "email_address": payload.get("email_address", [""])[0].strip(),
-        "short_bio": payload.get("short_bio", [""])[0].strip(),
+        "full_name": payload.get("full_name", "").strip(),
+        "working_languages": payload.get("working_languages", "").strip(),
+        "phone_number": payload.get("phone_number", "").strip(),
+        "email_address": payload.get("email_address", "").strip(),
+        "short_bio": payload.get("short_bio", "").strip(),
     }
 
     errors: dict[str, str] = {}
@@ -73,8 +110,21 @@ def _parse_submission(environ) -> tuple[dict[str, str], dict[str, str]]:
     return values, errors
 
 
+def _parse_form_body(environ) -> dict[str, str]:
+    content_length = int(environ.get("CONTENT_LENGTH") or "0")
+    raw_body = environ["wsgi.input"].read(content_length).decode("utf-8")
+    payload = parse_qs(raw_body, keep_blank_values=True)
+    return {key: values[0] for key, values in payload.items()}
+
+
 def _html_response(start_response, status_code: int, html: str):
-    status_map = {200: "200 OK", 400: "400 Bad Request", 404: "404 Not Found"}
+    status_map = {
+        200: "200 OK",
+        400: "400 Bad Request",
+        401: "401 Unauthorized",
+        404: "404 Not Found",
+        503: "503 Service Unavailable",
+    }
     body = html.encode("utf-8")
     start_response(
         status_map[status_code],
@@ -88,6 +138,21 @@ def _html_response(start_response, status_code: int, html: str):
 
 def _redirect(start_response, location: str):
     start_response("303 See Other", [("Location", location)])
+    return [b""]
+
+
+def _redirect_with_cookie(start_response, location: str, key: str, value: str):
+    cookie = SimpleCookie()
+    cookie[key] = value
+    cookie[key]["path"] = "/"
+    cookie[key]["httponly"] = True
+    start_response(
+        "303 See Other",
+        [
+            ("Location", location),
+            ("Set-Cookie", cookie.output(header="").strip()),
+        ],
+    )
     return [b""]
 
 
@@ -117,7 +182,7 @@ def _render_page(title: str, body: str) -> str:
       padding: 24px;
     }}
     main {{
-      width: min(100%, 520px);
+      width: min(100%, 620px);
       background: #0d1b2e;
       border: 1px solid #22344b;
       border-radius: 14px;
@@ -129,7 +194,12 @@ def _render_page(title: str, body: str) -> str:
       font-size: 28px;
       line-height: 1.2;
     }}
-    p, .line {{
+    h2 {{
+      margin: 0 0 12px;
+      font-size: 20px;
+      line-height: 1.25;
+    }}
+    .line {{
       margin: 0 0 12px;
       white-space: pre-line;
     }}
@@ -178,6 +248,38 @@ def _render_page(title: str, body: str) -> str:
       color: #b8c7d8;
       font-size: 13px;
     }}
+    .card {{
+      margin-top: 18px;
+      padding: 16px;
+      border: 1px solid #22344b;
+      border-radius: 12px;
+      background: #081321;
+    }}
+    .actions {{
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }}
+    .actions form {{
+      flex: 1;
+    }}
+    .actions button {{
+      width: 100%;
+      padding: 11px 12px;
+      border: 0;
+      border-radius: 10px;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 700;
+    }}
+    .approve {{
+      background: #dff7e5;
+      color: #08210f;
+    }}
+    .reject {{
+      background: #f9dede;
+      color: #2a0c0c;
+    }}
   </style>
 </head>
 <body>
@@ -222,15 +324,78 @@ def _render_success_page() -> str:
 <h1>Thank you</h1>
 <div class="line">Your submission has been received.</div>
 <div class="line">It is now pending review.</div>
-<a class="button" href="/info">Back to info page</a>
+<a class="button" href="/register">Back to registration</a>
 """
     return _render_page("Submission received", body)
+
+
+def _render_admin_login_page(error: str | None = None) -> str:
+    error_html = f'<div class="error">{escape(error)}</div>' if error else ""
+    body = f"""
+<h1>Admin review</h1>
+<div class="line">Enter the password to view pending registrations.</div>
+<form method="post" action="/admin/login">
+  <div class="block">
+    <label class="label" for="password">Password</label>
+    <input id="password" name="password" type="password">
+    {error_html}
+  </div>
+  <button class="button" type="submit">Open admin page</button>
+</form>
+"""
+    return _render_page("Admin login", body)
+
+
+def _render_admin_page(pending_submissions: list[StoredSubmission]) -> str:
+    if not pending_submissions:
+        cards = '<div class="line">No pending submissions right now.</div>'
+    else:
+        cards = "".join(_render_submission_card(submission) for submission in pending_submissions)
+    body = f"""
+<h1>Admin review</h1>
+<div class="line">Pending registrations</div>
+{cards}
+"""
+    return _render_page("Admin review", body)
+
+
+def _render_submission_card(submission: StoredSubmission) -> str:
+    return f"""
+<section class="card">
+  <h2>{escape(submission.full_name)}</h2>
+  <div class="line"><strong>Languages:</strong> {escape(submission.working_languages)}</div>
+  <div class="line"><strong>Phone:</strong> {escape(submission.phone_number)}</div>
+  <div class="line"><strong>Email:</strong> {escape(submission.email_address)}</div>
+  <div class="line"><strong>Bio:</strong> {escape(submission.short_bio)}</div>
+  <div class="line small">Submitted: {escape(submission.submitted_at)}</div>
+  <div class="actions">
+    <form method="post" action="/admin/action">
+      <input type="hidden" name="submission_id" value="{submission.id}">
+      <input type="hidden" name="action" value="approved">
+      <button class="approve" type="submit">Approve</button>
+    </form>
+    <form method="post" action="/admin/action">
+      <input type="hidden" name="submission_id" value="{submission.id}">
+      <input type="hidden" name="action" value="rejected">
+      <button class="reject" type="submit">Reject</button>
+    </form>
+  </div>
+</section>
+"""
+
+
+def _render_admin_unconfigured_page() -> str:
+    body = """
+<h1>Admin review</h1>
+<div class="line">ADMIN_PASSWORD is not configured yet.</div>
+"""
+    return _render_page("Admin unavailable", body)
 
 
 def _render_not_found_page() -> str:
     body = """
 <h1>Page not found</h1>
-<a class="button" href="/info">Back to info page</a>
+<a class="button" href="/register">Back to registration</a>
 """
     return _render_page("Page not found", body)
 
@@ -268,3 +433,14 @@ def _render_textarea(
   {error_html}
 </div>
 """
+
+
+def _auth_cookie_value(admin_password: str) -> str:
+    return sha256(admin_password.encode("utf-8")).hexdigest()
+
+
+def _is_admin_authenticated(environ, admin_password: str) -> bool:
+    cookies = SimpleCookie()
+    cookies.load(environ.get("HTTP_COOKIE", ""))
+    admin_cookie = cookies.get("admin_auth")
+    return bool(admin_cookie and admin_cookie.value == _auth_cookie_value(admin_password))

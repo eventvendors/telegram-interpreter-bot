@@ -29,6 +29,7 @@ class Settings:
     priority_rules_csv: Path
     submissions_db: Path
     public_base_url: str
+    admin_password: str
     web_host: str = "0.0.0.0"
     web_port: int = 8000
     results_per_page: int = 5
@@ -54,6 +55,7 @@ def get_settings() -> Settings:
         f"https://{railway_public_domain}" if railway_public_domain else f"http://localhost:{web_port}"
     )
     public_base_url = os.getenv("PUBLIC_BASE_URL", default_public_base_url).strip().rstrip("/")
+    admin_password = os.getenv("ADMIN_PASSWORD", "").strip()
 
     return Settings(
         telegram_bot_token=token,
@@ -61,5 +63,6 @@ def get_settings() -> Settings:
         priority_rules_csv=priority_rules_csv,
         submissions_db=submissions_db,
         public_base_url=public_base_url,
+        admin_password=admin_password,
         web_port=web_port,
     )

@@ -26,6 +26,32 @@ class SubmissionRepositoryTests(unittest.TestCase):
 
         self.assertEqual(submission_id, 1)
         self.assertTrue(db_path.exists())
+        pending = repository.list_submissions(status="pending")
+        self.assertEqual(len(pending), 1)
+        self.assertEqual(pending[0].full_name, "Jane Doe")
+
+    def test_update_status_removes_submission_from_pending_list(self) -> None:
+        storage_dir = Path(__file__).resolve().parent.parent / "storage"
+        storage_dir.mkdir(parents=True, exist_ok=True)
+        db_path = storage_dir / f"test-{uuid.uuid4().hex}.db"
+        repository = SubmissionRepository(db_path)
+
+        submission_id = repository.create_submission(
+            RegistrationSubmission(
+                full_name="John Doe",
+                working_languages="Russian, English",
+                phone_number="+971511111111",
+                email_address="john@example.com",
+                short_bio="Interpreter in Abu Dhabi.",
+            )
+        )
+
+        repository.update_status(submission_id, "approved")
+
+        self.assertEqual(repository.list_submissions(status="pending"), [])
+        approved = repository.list_submissions(status="approved")
+        self.assertEqual(len(approved), 1)
+        self.assertEqual(approved[0].id, submission_id)
 
 
 if __name__ == "__main__":

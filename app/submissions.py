@@ -15,6 +15,18 @@ class RegistrationSubmission:
     short_bio: str
 
 
+@dataclass(frozen=True)
+class StoredSubmission:
+    id: int
+    full_name: str
+    working_languages: str
+    phone_number: str
+    email_address: str
+    short_bio: str
+    status: str
+    submitted_at: str
+
+
 class SubmissionRepository:
     def __init__(self, db_path: Path) -> None:
         self.db_path = Path(db_path)
@@ -67,3 +79,48 @@ class SubmissionRepository:
                 ),
             )
             return int(cursor.lastrowid)
+
+    def list_submissions(self, status: str | None = None) -> list[StoredSubmission]:
+        with self._connect() as connection:
+            if status is None:
+                rows = connection.execute(
+                    """
+                    SELECT id, full_name, working_languages, phone_number, email_address, short_bio, status, submitted_at
+                    FROM registration_submissions
+                    ORDER BY id DESC
+                    """
+                ).fetchall()
+            else:
+                rows = connection.execute(
+                    """
+                    SELECT id, full_name, working_languages, phone_number, email_address, short_bio, status, submitted_at
+                    FROM registration_submissions
+                    WHERE status = ?
+                    ORDER BY id DESC
+                    """,
+                    (status,),
+                ).fetchall()
+        return [
+            StoredSubmission(
+                id=int(row["id"]),
+                full_name=row["full_name"],
+                working_languages=row["working_languages"],
+                phone_number=row["phone_number"],
+                email_address=row["email_address"],
+                short_bio=row["short_bio"],
+                status=row["status"],
+                submitted_at=row["submitted_at"],
+            )
+            for row in rows
+        ]
+
+    def update_status(self, submission_id: int, status: str) -> None:
+        with self._connect() as connection:
+            connection.execute(
+                """
+                UPDATE registration_submissions
+                SET status = ?
+                WHERE id = ?
+                """,
+                (status, submission_id),
+            )
