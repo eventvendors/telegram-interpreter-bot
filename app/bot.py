@@ -404,8 +404,7 @@ class BotRunner:
             chat_id,
             (
                 "Choose the SECOND language using the buttons in the chat.\n\n"
-                f"Your FIRST selected language is {language}.\n"
-                "Use Other Languages to see additional available options."
+                f"Your FIRST selected language is {language}."
             ),
             reply_markup=language_keyboard(
                 step="lang2",
