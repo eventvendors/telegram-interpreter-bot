@@ -317,14 +317,14 @@ class BotRunner:
         self.client.send_message(
             chat_id,
             (
-                "Welcome to UAE Translator Finder.\n\n"
+                "Hi! I am the UAE Translator Finder bot.\n\n"
                 "I help you find translators/interpreters by language pair.\n"
-                f'To register as a translator/interpreter, <a href="{info_link}">click here</a>.\n\n'
-                "<b>How it works</b>\n"
+                f"<i>to register as translator/interpreter, <a href=\"{info_link}\">click here</a></i>\n\n"
+                "How it works\n"
                 "1. Choose the first language\n"
                 "2. Choose the second language\n"
                 "3. I will show matching professionals with contact details\n\n"
-                "<b>Example</b>\n"
+                "Example\n"
                 "Arabic -> English\n\n"
                 "Choose the FIRST language using the buttons in the chat."
             ),
