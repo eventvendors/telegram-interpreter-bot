@@ -7,3 +7,4 @@ bot.log
 bot.err.log
 __pycache__/
 *.pyc
+storage/
