@@ -516,9 +516,43 @@ def _render_page(title: str, body: str, wide: bool = False) -> str:
       text-decoration: none;
       cursor: pointer;
     }}
+    .button-inline {{
+      display: inline-block;
+      width: auto;
+      margin-top: 0;
+      padding: 9px 14px;
+      border-radius: 8px;
+      background: #f3f7fb;
+      color: #07111f;
+      font-weight: 700;
+      text-decoration: none;
+      white-space: nowrap;
+    }}
+    .button-row {{
+      display: flex;
+      gap: 12px;
+      margin-top: 22px;
+    }}
+    .button-row .button,
+    .button-row .button-inline {{
+      flex: 0 0 auto;
+      min-width: 180px;
+      margin-top: 0;
+      text-align: center;
+    }}
     .small {{
       color: #b8c7d8;
       font-size: 13px;
+    }}
+    .nav-row {{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 0 0 12px;
+    }}
+    .nav-row .line {{
+      margin: 0;
     }}
     .card {{
       margin-top: 18px;
@@ -738,6 +772,15 @@ def _render_admin_nav(active_tab: str) -> str:
     return f'<div class="line">{" | ".join(links)}</div>'
 
 
+def _render_directory_header() -> str:
+    return (
+        '<div class="nav-row">'
+        f'{_render_admin_nav("directory")}'
+        '<a class="button-inline" href="/admin/directory/new">Add interpreter</a>'
+        "</div>"
+    )
+
+
 def _render_directory_page(people: list[PersonRecord]) -> str:
     people = sorted(people, key=lambda person: person.full_name.casefold())
     if not people:
@@ -746,10 +789,9 @@ def _render_directory_page(people: list[PersonRecord]) -> str:
         content = _render_directory_table(people)
     body = f"""
 <h1>Admin review</h1>
-{_render_admin_nav("directory")}
+{_render_directory_header()}
 <div class="line">Live directory</div>
 <div class="line small">Records are shown in alphabetical order.</div>
-<a class="button" href="/admin/directory/new">Add interpreter</a>
 {content}
 """
     return _render_page("Live directory", body, wide=True)
@@ -830,9 +872,11 @@ def _render_directory_edit_page(
   {_render_input("Phone number", "phone_number", form_values["phone_number"], errors.get("phone_number"), input_type="tel", maxlength=20)}
   {_render_input("Email address", "email_address", form_values["email_address"], errors.get("email_address"), input_type="email", maxlength=50)}
   {_render_textarea("Short bio/tag line", "short_bio", form_values["short_bio"], errors.get("short_bio"), placeholder="Max 126 characters including spaces", maxlength=126)}
-  <button class="button" type="submit">Update record</button>
+  <div class="button-row">
+    <button class="button-inline" type="submit">Update record</button>
+    <a class="button-inline" href="/admin/directory">Back to directory</a>
+  </div>
 </form>
-<a class="button" href="/admin/directory">Back to directory</a>
 """
     return _render_page("Edit directory record", body, wide=True)
 
@@ -861,9 +905,11 @@ def _render_directory_create_page(
   {_render_input("Phone number", "phone_number", form_values["phone_number"], errors.get("phone_number"), input_type="tel", maxlength=20)}
   {_render_input("Email address", "email_address", form_values["email_address"], errors.get("email_address"), input_type="email", maxlength=50)}
   {_render_textarea("Short bio/tag line", "short_bio", form_values["short_bio"], errors.get("short_bio"), placeholder="Max 126 characters including spaces", maxlength=126)}
-  <button class="button" type="submit">Add interpreter</button>
+  <div class="button-row">
+    <button class="button-inline" type="submit">Add interpreter</button>
+    <a class="button-inline" href="/admin/directory">Back to directory</a>
+  </div>
 </form>
-<a class="button" href="/admin/directory">Back to directory</a>
 """
     return _render_page("Add interpreter", body, wide=True)
 
