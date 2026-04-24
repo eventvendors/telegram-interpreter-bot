@@ -61,31 +61,20 @@ def results_keyboard(
         rows.append(
             [{"text": f"Page {current_page} of {total_pages}", "callback_data": "page-status"}]
         )
-    buttons: list[dict] = []
-    if current_page > 1:
-        buttons.append({"text": "Previous", "callback_data": f"page:{current_page - 1}"})
-
-    start_page = max(1, current_page - 2)
-    end_page = min(total_pages, current_page + 2)
-
-    if start_page > 1:
-        buttons.append({"text": "1", "callback_data": "page:1"})
-        if start_page > 2:
-            buttons.append({"text": "...", "callback_data": f"page:{start_page - 1}"})
-
-    for page_number in range(start_page, end_page + 1):
-        label = f"[{page_number}]" if page_number == current_page else str(page_number)
-        buttons.append({"text": label, "callback_data": f"page:{page_number}"})
-
-    if end_page < total_pages:
-        if end_page < total_pages - 1:
-            buttons.append({"text": "...", "callback_data": f"page:{end_page + 1}"})
-        buttons.append({"text": str(total_pages), "callback_data": f"page:{total_pages}"})
-
-    if current_page < total_pages:
-        buttons.append({"text": "Next", "callback_data": f"page:{current_page + 1}"})
-
-    if total_pages > 1 and buttons:
-        rows.extend(buttons[i : i + 5] for i in range(0, len(buttons), 5))
+        rows.append(
+            [
+                (
+                    {"text": "Previous", "callback_data": f"page:{current_page - 1}"}
+                    if current_page > 1
+                    else {"text": "Previous", "callback_data": "page-status"}
+                ),
+                {"text": f"Page {current_page}", "callback_data": "page-status"},
+                (
+                    {"text": "Next", "callback_data": f"page:{current_page + 1}"}
+                    if current_page < total_pages
+                    else {"text": "Next", "callback_data": "page-status"}
+                ),
+            ]
+        )
     rows.append([{"text": "New search", "callback_data": "new-search"}])
     return {"inline_keyboard": rows}
