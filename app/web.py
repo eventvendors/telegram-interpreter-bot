@@ -204,14 +204,13 @@ def _render_register_page(
 <h1>UAE Translator Finder</h1>
 <div class="line">This bot helps users quickly find translators and interpreters by language pair.</div>
 <div class="line">To be included in the directory, submit the following details:</div>
-<div class="line">full name<br>working languages<br>phone number<br>email address<br>short bio/tag line - max 90 characters including spaces</div>
 <div class="line small">Your submission will be reviewed before approval.</div>
 <form method="post" action="/register">
   {_render_input("Full name", "full_name", form_values["full_name"], errors.get("full_name"))}
   {_render_input("Working languages", "working_languages", form_values["working_languages"], errors.get("working_languages"))}
   {_render_input("Phone number", "phone_number", form_values["phone_number"], errors.get("phone_number"), input_type="tel")}
   {_render_input("Email address", "email_address", form_values["email_address"], errors.get("email_address"), input_type="email")}
-  {_render_textarea("Short bio/tag line", "short_bio", form_values["short_bio"], errors.get("short_bio"))}
+  {_render_textarea("Short bio/tag line", "short_bio", form_values["short_bio"], errors.get("short_bio"), placeholder="Max 90 characters including spaces")}
   <button class="button" type="submit">Register now</button>
 </form>
 """
@@ -242,12 +241,13 @@ def _render_input(
     value: str,
     error: str | None,
     input_type: str = "text",
+    placeholder: str = "",
 ) -> str:
     error_html = f'<div class="error">{escape(error)}</div>' if error else ""
     return f"""
 <div class="block">
   <label class="label" for="{escape(name)}">{escape(label)}</label>
-  <input id="{escape(name)}" name="{escape(name)}" type="{escape(input_type)}" value="{escape(value, quote=True)}">
+  <input id="{escape(name)}" name="{escape(name)}" type="{escape(input_type)}" value="{escape(value, quote=True)}" placeholder="{escape(placeholder, quote=True)}">
   {error_html}
 </div>
 """
@@ -258,12 +258,13 @@ def _render_textarea(
     name: str,
     value: str,
     error: str | None,
+    placeholder: str = "",
 ) -> str:
     error_html = f'<div class="error">{escape(error)}</div>' if error else ""
     return f"""
 <div class="block">
   <label class="label" for="{escape(name)}">{escape(label)}</label>
-  <textarea id="{escape(name)}" name="{escape(name)}">{escape(value)}</textarea>
+  <textarea id="{escape(name)}" name="{escape(name)}" placeholder="{escape(placeholder, quote=True)}">{escape(value)}</textarea>
   {error_html}
 </div>
 """
