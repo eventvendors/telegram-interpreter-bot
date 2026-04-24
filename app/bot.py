@@ -240,7 +240,7 @@ class BotRunner:
         if current_step == FIRST_LANGUAGE:
             self.client.send_message(
                 message.chat_id,
-                "Please choose the first language using the buttons in the chat.",
+                "Please choose the FIRST language using the buttons in the chat.",
                 reply_markup=language_keyboard(
                     step="lang1",
                     include_other_languages=self._has_other_languages(
@@ -395,7 +395,7 @@ class BotRunner:
         self.client.send_message(
             chat_id,
             (
-                "Choose the first language using the buttons in the chat.\n\n"
+                "Choose the FIRST language using the buttons in the chat.\n\n"
                 "Use Other Languages to see additional available options."
             ),
             reply_markup=language_keyboard(
@@ -435,8 +435,8 @@ class BotRunner:
         self.client.send_message(
             chat_id,
             (
-                "Choose the second language using the buttons in the chat.\n\n"
-                f"Your first selected language is {language}.\n"
+                "Choose the SECOND language using the buttons in the chat.\n\n"
+                f"Your FIRST selected language is {language}.\n"
                 "Use Other Languages to see additional available options."
             ),
             reply_markup=language_keyboard(
@@ -460,7 +460,7 @@ class BotRunner:
         except ValueError:
             self.client.send_message(
                 chat_id,
-                "Please choose the second language using the buttons in the chat.",
+                "Please choose the SECOND language using the buttons in the chat.",
                 reply_markup=language_keyboard(
                     step="lang2",
                     selected_language=state["language_one"],
@@ -515,7 +515,7 @@ class BotRunner:
         if step == FIRST_LANGUAGE:
             self.client.send_message(
                 chat_id,
-                "Choose the first language.",
+                "Choose the FIRST language.",
                 reply_markup=language_keyboard(
                     step="lang1",
                     include_other_languages=self._has_other_languages(
@@ -527,7 +527,7 @@ class BotRunner:
 
         self.client.send_message(
             chat_id,
-            "Choose the second language.",
+            "Choose the SECOND language.",
             reply_markup=language_keyboard(
                 step="lang2",
                 selected_language=state["language_one"],
