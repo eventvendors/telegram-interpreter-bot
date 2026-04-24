@@ -285,8 +285,8 @@ def _validate_directory_values(
         if not field_value:
             errors[field_name] = "This field is required."
 
-    if values["full_name"] and len(values["full_name"]) > 40:
-        errors["full_name"] = "Maximum 40 characters."
+    if values["full_name"] and len(values["full_name"]) > 30:
+        errors["full_name"] = "Maximum 30 characters."
 
     if values["working_languages"]:
         allowed_languages = {language.casefold() for language in language_options}
@@ -593,7 +593,7 @@ def _render_register_page(
 <div class="line">To be included in the directory, submit the following details:</div>
 <div class="line small">Your submission will be reviewed before approval.</div>
 <form method="post" action="/register">
-  {_render_input("Full name", "full_name", form_values["full_name"], errors.get("full_name"), maxlength=40)}
+  {_render_input("Full name", "full_name", form_values["full_name"], errors.get("full_name"), maxlength=30)}
   {_render_language_select(form_values["working_languages"], errors.get("working_languages"), language_options)}
   {_render_input("Phone number", "phone_number", form_values["phone_number"], errors.get("phone_number"), input_type="tel", maxlength=20)}
   {_render_input("Email address", "email_address", form_values["email_address"], errors.get("email_address"), input_type="email", maxlength=50)}
@@ -789,7 +789,7 @@ def _render_directory_edit_page(
 <div class="line">Edit live directory record</div>
 <form method="post" action="/admin/directory/edit">
   <input type="hidden" name="person_id" value="{person.id}">
-  {_render_input("Full name", "full_name", form_values["full_name"], errors.get("full_name"), maxlength=40)}
+  {_render_input("Full name", "full_name", form_values["full_name"], errors.get("full_name"), maxlength=30)}
   {_render_language_select(form_values["working_languages"], errors.get("working_languages"), language_options)}
   {_render_input("Phone number", "phone_number", form_values["phone_number"], errors.get("phone_number"), input_type="tel", maxlength=20)}
   {_render_input("Email address", "email_address", form_values["email_address"], errors.get("email_address"), input_type="email", maxlength=50)}

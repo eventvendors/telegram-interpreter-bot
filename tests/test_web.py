@@ -31,7 +31,7 @@ class WebValidationTests(unittest.TestCase):
         )
 
         self.assertEqual(values["working_languages"], "Arabic, MadeUp")
-        self.assertEqual(errors["full_name"], "Maximum 40 characters.")
+        self.assertEqual(errors["full_name"], "Maximum 30 characters.")
         self.assertEqual(
             errors["working_languages"],
             "Select languages from the dropdown only.",
