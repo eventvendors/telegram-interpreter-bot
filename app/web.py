@@ -760,7 +760,7 @@ def _render_directory_row(index: int, person: PersonRecord) -> str:
       </form>
       <form method="post" action="/admin/directory/delete">
         <input type="hidden" name="person_id" value="{person.id}">
-        <button class="reject" type="submit">Delete</button>
+        <button class="reject" type="submit" onclick="return confirm('Are you sure you want to delete this interpreter?')">Delete</button>
       </form>
     </div>
   </td>
