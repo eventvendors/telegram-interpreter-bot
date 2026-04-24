@@ -44,7 +44,33 @@ def create_web_app(settings: Settings):
                 return _html_response(start_response, 503, _render_admin_unconfigured_page())
             if _is_admin_authenticated(environ, settings.admin_password):
                 pending = repository.list_submissions(status="pending")
-                return _html_response(start_response, 200, _render_admin_page(pending))
+                return _html_response(
+                    start_response,
+                    200,
+                    _render_admin_page("Pending", "pending", pending),
+                )
+            return _html_response(start_response, 200, _render_admin_login_page())
+        if method == "GET" and path == "/admin/approved":
+            if not settings.admin_password:
+                return _html_response(start_response, 503, _render_admin_unconfigured_page())
+            if _is_admin_authenticated(environ, settings.admin_password):
+                approved = repository.list_submissions(status="approved")
+                return _html_response(
+                    start_response,
+                    200,
+                    _render_admin_page("Approved", "approved", approved),
+                )
+            return _html_response(start_response, 200, _render_admin_login_page())
+        if method == "GET" and path == "/admin/rejected":
+            if not settings.admin_password:
+                return _html_response(start_response, 503, _render_admin_unconfigured_page())
+            if _is_admin_authenticated(environ, settings.admin_password):
+                rejected = repository.list_submissions(status="rejected")
+                return _html_response(
+                    start_response,
+                    200,
+                    _render_admin_page("Rejected", "rejected", rejected),
+                )
             return _html_response(start_response, 200, _render_admin_login_page())
         if method == "POST" and path == "/admin/login":
             if not settings.admin_password:
@@ -346,28 +372,32 @@ def _render_admin_login_page(error: str | None = None) -> str:
     return _render_page("Admin login", body)
 
 
-def _render_admin_page(pending_submissions: list[StoredSubmission]) -> str:
-    if not pending_submissions:
-        cards = '<div class="line">No pending submissions right now.</div>'
+def _render_admin_page(
+    title: str,
+    active_tab: str,
+    submissions: list[StoredSubmission],
+) -> str:
+    if not submissions:
+        cards = f'<div class="line">No {escape(title.lower())} submissions right now.</div>'
     else:
-        cards = "".join(_render_submission_card(submission) for submission in pending_submissions)
+        cards = "".join(
+            _render_submission_card(submission, show_actions=(active_tab == "pending"))
+            for submission in submissions
+        )
+    nav = _render_admin_nav(active_tab)
     body = f"""
 <h1>Admin review</h1>
-<div class="line">Pending registrations</div>
+{nav}
+<div class="line">{escape(title)} registrations</div>
 {cards}
 """
     return _render_page("Admin review", body)
 
 
-def _render_submission_card(submission: StoredSubmission) -> str:
-    return f"""
-<section class="card">
-  <h2>{escape(submission.full_name)}</h2>
-  <div class="line"><strong>Languages:</strong> {escape(submission.working_languages)}</div>
-  <div class="line"><strong>Phone:</strong> {escape(submission.phone_number)}</div>
-  <div class="line"><strong>Email:</strong> {escape(submission.email_address)}</div>
-  <div class="line"><strong>Bio:</strong> {escape(submission.short_bio)}</div>
-  <div class="line small">Submitted: {escape(submission.submitted_at)}</div>
+def _render_submission_card(submission: StoredSubmission, show_actions: bool) -> str:
+    actions_html = ""
+    if show_actions:
+        actions_html = f"""
   <div class="actions">
     <form method="post" action="/admin/action">
       <input type="hidden" name="submission_id" value="{submission.id}">
@@ -380,8 +410,34 @@ def _render_submission_card(submission: StoredSubmission) -> str:
       <button class="reject" type="submit">Reject</button>
     </form>
   </div>
+"""
+    return f"""
+<section class="card">
+  <h2>{escape(submission.full_name)}</h2>
+  <div class="line"><strong>Languages:</strong> {escape(submission.working_languages)}</div>
+  <div class="line"><strong>Phone:</strong> {escape(submission.phone_number)}</div>
+  <div class="line"><strong>Email:</strong> {escape(submission.email_address)}</div>
+  <div class="line"><strong>Bio:</strong> {escape(submission.short_bio)}</div>
+  <div class="line small">Status: {escape(submission.status.title())}</div>
+  <div class="line small">Submitted: {escape(submission.submitted_at)}</div>
+  {actions_html}
 </section>
 """
+
+
+def _render_admin_nav(active_tab: str) -> str:
+    tabs = [
+        ("Pending", "/admin", "pending"),
+        ("Approved", "/admin/approved", "approved"),
+        ("Rejected", "/admin/rejected", "rejected"),
+    ]
+    links = []
+    for label, href, key in tabs:
+        if key == active_tab:
+            links.append(f'<strong>{escape(label)}</strong>')
+        else:
+            links.append(f'<a href="{escape(href, quote=True)}">{escape(label)}</a>')
+    return f'<div class="line">{" | ".join(links)}</div>'
 
 
 def _render_admin_unconfigured_page() -> str:
