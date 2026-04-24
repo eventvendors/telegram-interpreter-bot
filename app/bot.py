@@ -318,8 +318,8 @@ class BotRunner:
             chat_id,
             (
                 "Hi! I am the UAE Translator Finder bot.\n\n"
-                "I help you find translators/interpreters by language pair.\n"
-                f"<i>to register as translator/interpreter, <a href=\"{info_link}\">click here</a></i>\n\n"
+                "I help you find translators/interpreters by language pair.\n\n"
+                f"*to register as translator/interpreter, <a href=\"{info_link}\">click here</a>*\n\n"
                 "How it works\n"
                 "1. Choose the first language\n"
                 "2. Choose the second language\n"
