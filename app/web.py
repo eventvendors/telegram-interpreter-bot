@@ -776,8 +776,8 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       color-scheme: light;
       color: #163145;
       background:
-        radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0) 34%),
-        linear-gradient(180deg, #edf8fb 0%, #d9eff2 44%, #eff7fa 100%);
+        radial-gradient(circle at 50% 14%, rgba(255, 255, 255, 0.97), rgba(255, 255, 255, 0) 28%),
+        linear-gradient(180deg, #eef8fb 0%, #d9edf1 48%, #eff8fb 100%);
       position: relative;
       overflow-x: hidden;
     }}
@@ -789,49 +789,53 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       pointer-events: none;
     }}
     body.theme-register::before {{
-      height: 36vh;
-      opacity: 0.38;
+      height: 42vh;
+      opacity: 0.5;
       background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(183, 219, 226, 0.4)),
+        linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(172, 209, 218, 0.5)),
         linear-gradient(90deg,
-          transparent 0 8%,
-          rgba(110, 156, 171, 0.18) 8% 9%,
-          transparent 9% 17%,
-          rgba(110, 156, 171, 0.14) 17% 19%,
-          transparent 19% 28%,
-          rgba(110, 156, 171, 0.22) 28% 29.6%,
-          transparent 29.6% 41%,
-          rgba(110, 156, 171, 0.12) 41% 43%,
-          transparent 43% 59%,
-          rgba(110, 156, 171, 0.18) 59% 60.5%,
-          transparent 60.5% 73%,
-          rgba(110, 156, 171, 0.12) 73% 75.5%,
-          transparent 75.5% 86%,
-          rgba(110, 156, 171, 0.2) 86% 87.5%,
+          transparent 0 10%,
+          rgba(110, 156, 171, 0.18) 10% 10.9%,
+          transparent 10.9% 19%,
+          rgba(110, 156, 171, 0.14) 19% 20.8%,
+          transparent 20.8% 30%,
+          rgba(110, 156, 171, 0.24) 30% 31.2%,
+          transparent 31.2% 44%,
+          rgba(110, 156, 171, 0.11) 44% 45.5%,
+          transparent 45.5% 61%,
+          rgba(110, 156, 171, 0.17) 61% 62.2%,
+          transparent 62.2% 75%,
+          rgba(110, 156, 171, 0.12) 75% 77.2%,
+          transparent 77.2% 88%,
+          rgba(110, 156, 171, 0.22) 88% 89.1%,
           transparent 87.5% 100%);
-      clip-path: polygon(0 100%, 0 67%, 6% 67%, 6% 51%, 9% 51%, 9% 61%, 13% 61%, 13% 40%, 17% 40%, 17% 59%, 24% 59%, 24% 35%, 28% 35%, 28% 60%, 40% 60%, 40% 47%, 42% 47%, 42% 58%, 58% 58%, 58% 31%, 61% 31%, 61% 59%, 72% 59%, 72% 43%, 76% 43%, 76% 59%, 86% 59%, 86% 23%, 88% 23%, 88% 59%, 100% 59%, 100% 100%);
+      clip-path: polygon(0 100%, 0 69%, 7% 69%, 7% 54%, 10% 54%, 10% 63%, 15% 63%, 15% 43%, 19% 43%, 19% 61%, 26% 61%, 26% 38%, 30% 38%, 30% 61%, 41% 61%, 41% 49%, 43% 49%, 43% 60%, 57% 60%, 57% 34%, 60.5% 34%, 60.5% 61%, 72% 61%, 72% 46%, 76% 46%, 76% 61%, 86% 61%, 86% 18%, 88.5% 18%, 88.5% 61%, 100% 61%, 100% 100%);
     }}
     body.theme-register::after {{
-      height: 28vh;
-      background: linear-gradient(180deg, rgba(216, 238, 242, 0), rgba(207, 232, 236, 0.62));
+      height: 33vh;
+      background:
+        linear-gradient(180deg, rgba(216, 238, 242, 0), rgba(207, 232, 236, 0.72)),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0));
+      transform: scaleY(-1);
+      opacity: 0.52;
     }}
     body.theme-register main.panel-register {{
       position: relative;
-      width: min(100%, 540px);
-      padding: 34px 30px 28px;
-      border-radius: 34px;
+      width: min(100%, 456px);
+      padding: 28px 26px 24px;
+      border-radius: 30px;
       border: 1px solid rgba(255, 255, 255, 0.68);
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.5));
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.54));
       box-shadow:
-        0 28px 80px rgba(64, 116, 132, 0.15),
+        0 22px 58px rgba(64, 116, 132, 0.14),
         inset 0 1px 0 rgba(255, 255, 255, 0.72);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
     }}
     body.theme-register h1 {{
-      margin-bottom: 10px;
+      margin-bottom: 6px;
       color: #163145;
-      font-size: clamp(30px, 5vw, 34px);
+      font-size: clamp(22px, 4vw, 26px);
       letter-spacing: -0.03em;
     }}
     body.theme-register .line {{
@@ -839,13 +843,13 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       margin-bottom: 10px;
     }}
     body.theme-register .label {{
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       color: #163145;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
     }}
     body.theme-register .block {{
-      margin-top: 20px;
+      margin-top: 16px;
     }}
     body.theme-register input,
     body.theme-register textarea,
@@ -854,8 +858,8 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       border: 1px solid rgba(140, 176, 188, 0.6);
       background: rgba(255, 255, 255, 0.88);
       color: #163145;
-      border-radius: 14px;
-      padding: 13px 16px;
+      border-radius: 12px;
+      padding: 11px 14px;
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
       transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
     }}
@@ -873,7 +877,7 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       box-shadow: 0 0 0 4px rgba(45, 154, 160, 0.14);
     }}
     body.theme-register textarea {{
-      min-height: 108px;
+      min-height: 72px;
       resize: vertical;
     }}
     body.theme-register .error {{
@@ -885,18 +889,19 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
     body.theme-register .button {{
       display: inline-block;
       width: 100%;
-      margin-top: 24px;
-      padding: 16px 18px;
+      margin-top: 18px;
+      padding: 13px 18px;
       border: 0;
-      border-radius: 999px;
+      border-radius: 10px;
       background: linear-gradient(135deg, #2e9fa2 0%, #237f8f 100%);
       color: #ffffff;
       text-align: center;
       font-weight: 700;
+      font-size: 15px;
       letter-spacing: 0.01em;
       text-decoration: none;
       cursor: pointer;
-      box-shadow: 0 18px 36px rgba(35, 127, 143, 0.18);
+      box-shadow: 0 14px 28px rgba(35, 127, 143, 0.16);
       transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
     }}
     body.theme-register .button:hover {{
@@ -911,43 +916,43 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
     .register-hero {{
       display: flex;
       align-items: flex-start;
-      gap: 16px;
-      margin-bottom: 8px;
+      gap: 14px;
+      margin-bottom: 6px;
     }}
     .register-badge {{
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 60px;
-      height: 60px;
+      width: 52px;
+      height: 52px;
       border-radius: 50%;
       background: linear-gradient(180deg, rgba(220, 243, 246, 0.95), rgba(202, 233, 238, 0.78));
       color: #1f7d8d;
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
-      flex: 0 0 60px;
+      flex: 0 0 52px;
     }}
     .register-badge svg {{
-      width: 28px;
-      height: 28px;
+      width: 24px;
+      height: 24px;
     }}
     .register-title-group {{
       min-width: 0;
     }}
     .register-subtitle {{
-      margin: 0 0 8px;
+      margin: 0 0 4px;
       color: #36576b;
-      font-size: 16px;
+      font-size: 12px;
     }}
     .register-helper {{
       margin: 0;
       color: #5d7d8d;
-      font-size: 14px;
+      font-size: 12px;
     }}
     .register-footer-note {{
-      margin: 14px 4px 0;
+      margin: 10px 4px 0;
       text-align: center;
       color: #4e6f81;
-      font-size: 13px;
+      font-size: 12px;
     }}
     .sr-only {{
       position: absolute;
@@ -972,6 +977,7 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       cursor: pointer;
       font: inherit;
       text-align: left;
+      min-height: 48px;
     }}
     .language-summary {{
       overflow: hidden;
@@ -998,8 +1004,8 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
     .language-menu {{
       position: absolute;
       inset: calc(100% + 10px) 0 auto;
-      padding: 14px;
-      border-radius: 18px;
+      padding: 12px;
+      border-radius: 16px;
       border: 1px solid rgba(140, 176, 188, 0.45);
       background: rgba(255, 255, 255, 0.96);
       box-shadow: 0 24px 44px rgba(55, 102, 117, 0.16);
@@ -1014,23 +1020,23 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
     .language-grid {{
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-      max-height: 252px;
+      gap: 8px;
+      max-height: 220px;
       overflow-y: auto;
       padding-right: 4px;
     }}
     .language-option {{
       display: flex;
       align-items: center;
-      gap: 10px;
-      min-height: 44px;
-      padding: 10px 12px;
-      border-radius: 14px;
+      gap: 8px;
+      min-height: 38px;
+      padding: 8px 10px;
+      border-radius: 12px;
       background: #f6fbfc;
       border: 1px solid rgba(185, 213, 220, 0.7);
       cursor: pointer;
       color: #163145;
-      font-size: 14px;
+      font-size: 13px;
     }}
     .language-option input {{
       width: 18px;
@@ -1049,7 +1055,7 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       justify-content: space-between;
       align-items: center;
       gap: 12px;
-      margin-top: 10px;
+      margin-top: 8px;
       color: #5c7a8b;
       font-size: 12px;
     }}
@@ -1059,7 +1065,7 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       }}
       body.theme-register main.panel-register {{
         width: 100%;
-        padding: 24px 16px 22px;
+        padding: 22px 15px 20px;
         border-radius: 24px;
       }}
       .register-hero {{
