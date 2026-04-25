@@ -791,27 +791,27 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       pointer-events: none;
     }}
     body.theme-register::before {{
-      height: 38vh;
-      opacity: 0.9;
+      height: 33vh;
+      opacity: 0.78;
       background:
-        linear-gradient(180deg, rgba(255,255,255,0), rgba(206,232,238,0.18)),
-        url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 520'><defs><linearGradient id='g' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='%2396bfc9' stop-opacity='0.55'/><stop offset='1' stop-color='%238db4bf' stop-opacity='0.16'/></linearGradient></defs><g fill='url(%23g)'><rect x='0' y='372' width='50' height='148' rx='3'/><rect x='56' y='340' width='28' height='180' rx='2'/><rect x='92' y='388' width='42' height='132' rx='3'/><rect x='146' y='316' width='18' height='204' rx='2'/><rect x='170' y='280' width='54' height='240' rx='3'/><rect x='232' y='352' width='62' height='168' rx='3'/><rect x='304' y='300' width='20' height='220' rx='2'/><rect x='332' y='328' width='88' height='192' rx='3'/><rect x='428' y='262' width='26' height='258' rx='2'/><rect x='462' y='214' width='88' height='306' rx='4'/><rect x='560' y='356' width='42' height='164' rx='3'/><rect x='612' y='282' width='16' height='238' rx='2'/><rect x='636' y='312' width='54' height='208' rx='3'/><rect x='700' y='250' width='30' height='270' rx='3'/><rect x='736' y='164' width='92' height='356' rx='4'/><rect x='836' y='334' width='52' height='186' rx='3'/><rect x='896' y='296' width='18' height='224' rx='2'/><rect x='922' y='250' width='70' height='270' rx='3'/><rect x='1004' y='202' width='36' height='318' rx='3'/><rect x='1048' y='110' width='24' height='410' rx='3'/><polygon points='1060,8 1044,110 1076,110' fill='url(%23g)'/><rect x='1084' y='244' width='74' height='276' rx='3'/><rect x='1168' y='352' width='38' height='168' rx='3'/><rect x='1216' y='302' width='22' height='218' rx='2'/><rect x='1246' y='264' width='96' height='256' rx='4'/><rect x='1350' y='334' width='58' height='186' rx='3'/><rect x='1418' y='280' width='26' height='240' rx='3'/><rect x='1450' y='226' width='78' height='294' rx='4'/><rect x='1538' y='360' width='44' height='160' rx='3'/></g><g fill='%23ffffff' opacity='0.22'><rect x='171' y='297' width='54' height='8'/><rect x='463' y='227' width='87' height='9'/><rect x='737' y='177' width='91' height='10'/><rect x='1247' y='277' width='94' height='10'/><rect x='1451' y='239' width='77' height='10'/></g></svg>");
+        linear-gradient(180deg, rgba(255,255,255,0), rgba(206,232,238,0.12)),
+        url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 360'><defs><linearGradient id='g' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='%2386afbb' stop-opacity='0.48'/><stop offset='1' stop-color='%2386afbb' stop-opacity='0.1'/></linearGradient><linearGradient id='burj' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='%23759fac' stop-opacity='0.62'/><stop offset='1' stop-color='%23759fac' stop-opacity='0.1'/></linearGradient></defs><g fill='url(%23g)'><path d='M0 360v-84h26v84z'/><path d='M40 360v-132h18v132z'/><path d='M68 360v-108h36v108z'/><path d='M118 360v-154h22v154z'/><path d='M150 360v-188h48v188z'/><path d='M210 360v-138h20v138z'/><path d='M238 360v-206h62v206z'/><path d='M312 360v-148h18v148z'/><path d='M340 360v-184h72v184z'/><path d='M424 360v-132h24v132z'/><path d='M460 360v-166h52v166z'/><path d='M526 360v-144h18v144z'/><path d='M556 360v-120h44v120z'/><path d='M996 360v-110h40v110z'/><path d='M1048 360v-160h20v160z'/><path d='M1080 360v-214h64v214z'/><path d='M1156 360v-144h22v144z'/><path d='M1190 360v-176h56v176z'/><path d='M1260 360v-132h18v132z'/><path d='M1290 360v-204h70v204z'/><path d='M1374 360v-150h24v150z'/><path d='M1410 360v-182h60v182z'/><path d='M1484 360v-118h28v118z'/><path d='M1522 360v-94h18v94z'/></g><path fill='url(%23burj)' d='M760 360V172h14V134h10V98h8V64h6V36h4V18h3v18h4v18h6v28h8v36h10v36h14v226z'/><g fill='%23ffffff' opacity='0.17'><rect x='238' y='168' width='62' height='6'/><rect x='340' y='190' width='72' height='6'/><rect x='1080' y='160' width='64' height='6'/><rect x='1290' y='170' width='70' height='6'/></g></svg>");
       background-repeat: no-repeat, no-repeat;
       background-position: center bottom, center bottom;
       background-size: cover, cover;
     }}
     body.theme-register::after {{
-      height: 32vh;
+      height: 27vh;
       background:
-        linear-gradient(180deg, rgba(255,255,255,0), rgba(201,228,235,0.42) 42%, rgba(214,238,243,0.74)),
-        linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0) 28%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0) 72%, rgba(255,255,255,0.08)),
-        repeating-linear-gradient(180deg, rgba(255,255,255,0.16) 0 2px, rgba(255,255,255,0) 2px 10px);
-      opacity: 0.62;
+        linear-gradient(180deg, rgba(255,255,255,0), rgba(201,228,235,0.28) 40%, rgba(214,238,243,0.56)),
+        linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0) 28%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0) 72%, rgba(255,255,255,0.04)),
+        repeating-linear-gradient(180deg, rgba(255,255,255,0.11) 0 2px, rgba(255,255,255,0) 2px 12px);
+      opacity: 0.44;
     }}
     body.theme-register main.panel-register {{
       position: relative;
-      width: min(100%, 590px);
-      padding: 40px 34px 28px;
+      width: min(100%, 570px);
+      padding: 30px 30px 22px;
       border-radius: 36px;
       border: 1px solid rgba(255, 255, 255, 0.75);
       background: linear-gradient(180deg, rgba(255,255,255,0.7), rgba(255,255,255,0.58));
@@ -866,7 +866,7 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       box-shadow: 0 0 0 4px rgba(45, 154, 160, 0.14);
     }}
     body.theme-register textarea {{
-      min-height: 92px;
+      min-height: 74px;
       resize: vertical;
     }}
     body.theme-register .error {{
@@ -878,8 +878,8 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
     body.theme-register .button {{
       display: inline-block;
       width: 100%;
-      margin-top: 22px;
-      padding: 16px 18px;
+      margin-top: 18px;
+      padding: 14px 18px;
       border: 0;
       border-radius: 16px;
       background: linear-gradient(135deg, #2e9fa2 0%, #237f8f 100%);
@@ -938,7 +938,7 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       font-size: 14px;
     }}
     .register-footer-note {{
-      margin: 14px 4px 0;
+      margin: 10px 4px 0;
       text-align: center;
       color: #4e6f81;
       font-size: 13px;
@@ -1054,7 +1054,7 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       }}
       body.theme-register main.panel-register {{
         width: 100%;
-        padding: 28px 20px 22px;
+        padding: 24px 18px 20px;
         border-radius: 28px;
       }}
       .register-hero {{
