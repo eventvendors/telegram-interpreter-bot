@@ -791,27 +791,27 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       pointer-events: none;
     }}
     body.theme-register::before {{
-      height: 33vh;
-      opacity: 0.78;
+      height: 35vh;
+      opacity: 0.88;
       background:
         linear-gradient(180deg, rgba(255,255,255,0), rgba(206,232,238,0.12)),
-        url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 360'><defs><linearGradient id='g' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='%2386afbb' stop-opacity='0.48'/><stop offset='1' stop-color='%2386afbb' stop-opacity='0.1'/></linearGradient><linearGradient id='burj' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='%23759fac' stop-opacity='0.62'/><stop offset='1' stop-color='%23759fac' stop-opacity='0.1'/></linearGradient></defs><g fill='url(%23g)'><path d='M0 360v-84h26v84z'/><path d='M40 360v-132h18v132z'/><path d='M68 360v-108h36v108z'/><path d='M118 360v-154h22v154z'/><path d='M150 360v-188h48v188z'/><path d='M210 360v-138h20v138z'/><path d='M238 360v-206h62v206z'/><path d='M312 360v-148h18v148z'/><path d='M340 360v-184h72v184z'/><path d='M424 360v-132h24v132z'/><path d='M460 360v-166h52v166z'/><path d='M526 360v-144h18v144z'/><path d='M556 360v-120h44v120z'/><path d='M996 360v-110h40v110z'/><path d='M1048 360v-160h20v160z'/><path d='M1080 360v-214h64v214z'/><path d='M1156 360v-144h22v144z'/><path d='M1190 360v-176h56v176z'/><path d='M1260 360v-132h18v132z'/><path d='M1290 360v-204h70v204z'/><path d='M1374 360v-150h24v150z'/><path d='M1410 360v-182h60v182z'/><path d='M1484 360v-118h28v118z'/><path d='M1522 360v-94h18v94z'/></g><path fill='url(%23burj)' d='M760 360V172h14V134h10V98h8V64h6V36h4V18h3v18h4v18h6v28h8v36h10v36h14v226z'/><g fill='%23ffffff' opacity='0.17'><rect x='238' y='168' width='62' height='6'/><rect x='340' y='190' width='72' height='6'/><rect x='1080' y='160' width='64' height='6'/><rect x='1290' y='170' width='70' height='6'/></g></svg>");
+        url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 420'><defs><linearGradient id='sky' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='%2385afba' stop-opacity='0.54'/><stop offset='1' stop-color='%2385afba' stop-opacity='0.08'/></linearGradient><linearGradient id='burj' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='%23779daa' stop-opacity='0.72'/><stop offset='1' stop-color='%23779daa' stop-opacity='0.08'/></linearGradient></defs><g fill='url(%23sky)'><path d='M0 420v-52h24v52z'/><path d='M36 420v-84h14v84z'/><path d='M62 420v-62h38v62z'/><path d='M112 420v-110h20v110z'/><path d='M146 420v-164h56v164z'/><path d='M214 420v-102h16v102z'/><path d='M242 420v-188h72v188z'/><path d='M328 420v-96h14v96z'/><path d='M354 420v-158h74v158z'/><path d='M442 420v-118h20v118z'/><path d='M474 420v-144h54v144z'/><path d='M540 420v-92h16v92z'/><path d='M958 420v-88h18v88z'/><path d='M988 420v-122h54v122z'/><path d='M1056 420v-88h16v88z'/><path d='M1086 420v-180h70v180z'/><path d='M1170 420v-108h18v108z'/><path d='M1200 420v-144h58v144z'/><path d='M1272 420v-88h16v88z'/><path d='M1300 420v-126h46v126z'/><path d='M1360 420v-96h18v96z'/><path d='M1390 420v-170h74v170z'/><path d='M1478 420v-88h24v88z'/><path d='M1514 420v-54h16v54z'/></g><path fill='url(%23burj)' d='M1246 420V196h12v-28h10v-30h8v-34h6V74h4V50h3V32h2V20h2v12h3v18h4v24h6v30h8v34h10v30h12v252z'/><path fill='url(%23sky)' d='M1212 420V246h16v174z'/><path fill='url(%23sky)' d='M1232 420V222h12v198z'/><path fill='url(%23sky)' d='M1280 420V244h14v176z'/><g fill='%23ffffff' opacity='0.16'><rect x='242' y='248' width='72' height='6'/><rect x='354' y='278' width='74' height='6'/><rect x='1086' y='256' width='70' height='6'/><rect x='1390' y='266' width='74' height='6'/><rect x='1242' y='178' width='34' height='4'/></g></svg>");
       background-repeat: no-repeat, no-repeat;
       background-position: center bottom, center bottom;
-      background-size: cover, cover;
+      background-size: cover, 100% auto;
     }}
     body.theme-register::after {{
-      height: 27vh;
+      height: 20vh;
       background:
         linear-gradient(180deg, rgba(255,255,255,0), rgba(201,228,235,0.28) 40%, rgba(214,238,243,0.56)),
         linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0) 28%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0) 72%, rgba(255,255,255,0.04)),
         repeating-linear-gradient(180deg, rgba(255,255,255,0.11) 0 2px, rgba(255,255,255,0) 2px 12px);
-      opacity: 0.44;
+      opacity: 0.32;
     }}
     body.theme-register main.panel-register {{
       position: relative;
-      width: min(100%, 570px);
-      padding: 30px 30px 22px;
+      width: min(100%, 560px);
+      padding: 28px 28px 18px;
       border-radius: 36px;
       border: 1px solid rgba(255, 255, 255, 0.75);
       background: linear-gradient(180deg, rgba(255,255,255,0.7), rgba(255,255,255,0.58));
@@ -838,7 +838,7 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       font-weight: 600;
     }}
     body.theme-register .block {{
-      margin-top: 18px;
+      margin-top: 14px;
     }}
     body.theme-register input,
     body.theme-register textarea,
@@ -866,7 +866,7 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       box-shadow: 0 0 0 4px rgba(45, 154, 160, 0.14);
     }}
     body.theme-register textarea {{
-      min-height: 74px;
+      min-height: 64px;
       resize: vertical;
     }}
     body.theme-register .error {{
@@ -878,8 +878,8 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
     body.theme-register .button {{
       display: inline-block;
       width: 100%;
-      margin-top: 18px;
-      padding: 14px 18px;
+      margin-top: 16px;
+      padding: 13px 18px;
       border: 0;
       border-radius: 16px;
       background: linear-gradient(135deg, #2e9fa2 0%, #237f8f 100%);
