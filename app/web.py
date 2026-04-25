@@ -848,7 +848,7 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       background: rgba(255, 255, 255, 0.88);
       color: #163145;
       border-radius: 14px;
-      padding: 15px 16px;
+      padding: 10px 14px;
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
       transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
     }}
@@ -866,7 +866,7 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       box-shadow: 0 0 0 4px rgba(45, 154, 160, 0.14);
     }}
     body.theme-register textarea {{
-      min-height: 64px;
+      min-height: 52px;
       resize: vertical;
     }}
     body.theme-register .error {{
@@ -966,7 +966,7 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       cursor: pointer;
       font: inherit;
       text-align: left;
-      min-height: 56px;
+      min-height: 44px;
     }}
     .language-summary {{
       overflow: hidden;
