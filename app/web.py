@@ -428,6 +428,78 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
     main_width = "1200px" if wide else "620px"
     body_class = "theme-register" if theme == "register" else "theme-default"
     main_class = "panel-register" if theme == "register" else "panel-default"
+    register_script = """
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const widgets = document.querySelectorAll("[data-language-widget]");
+      widgets.forEach(function (widget) {
+        const toggle = widget.querySelector("[data-language-toggle]");
+        const menu = widget.querySelector("[data-language-menu]");
+        const summary = widget.querySelector("[data-language-summary]");
+        const counter = widget.querySelector("[data-language-counter]");
+        const checkboxes = Array.from(widget.querySelectorAll('input[type="checkbox"][data-language-option]'));
+        const hiddenSelect = widget.querySelector("select[name='working_languages']");
+        const maxSelection = Number(widget.getAttribute("data-max-selection") || "4");
+
+        if (!toggle || !menu || !summary || !counter || !hiddenSelect || !checkboxes.length) {
+          return;
+        }
+
+        function syncSelection() {
+          const checked = checkboxes.filter(function (checkbox) { return checkbox.checked; });
+          const selectedValues = checked.map(function (checkbox) { return checkbox.value; });
+
+          Array.from(hiddenSelect.options).forEach(function (option) {
+            option.selected = selectedValues.includes(option.value);
+          });
+
+          if (!selectedValues.length) {
+            summary.textContent = "Select languages";
+          } else if (selectedValues.length === 1) {
+            summary.textContent = selectedValues[0];
+          } else {
+            summary.textContent = selectedValues.slice(0, 2).join(", ") + (selectedValues.length > 2 ? " +" + (selectedValues.length - 2) : "");
+          }
+
+          widget.classList.toggle("has-selection", selectedValues.length > 0);
+          counter.textContent = selectedValues.length ? selectedValues.length + " of " + maxSelection + " selected" : "Choose up to " + maxSelection + " working languages.";
+
+          const limitReached = selectedValues.length >= maxSelection;
+          checkboxes.forEach(function (checkbox) {
+            checkbox.disabled = !checkbox.checked && limitReached;
+          });
+        }
+
+        function closeMenu() {
+          widget.classList.remove("is-open");
+          toggle.setAttribute("aria-expanded", "false");
+        }
+
+        toggle.addEventListener("click", function () {
+          const isOpen = widget.classList.toggle("is-open");
+          toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        });
+
+        checkboxes.forEach(function (checkbox) {
+          checkbox.addEventListener("change", syncSelection);
+        });
+
+        document.addEventListener("click", function (event) {
+          if (!widget.contains(event.target)) {
+            closeMenu();
+          }
+        });
+
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "Escape") {
+            closeMenu();
+          }
+        });
+
+        syncSelection();
+      });
+    });
+  </script>""" if theme == "register" else ""
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -745,13 +817,13 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
     }}
     body.theme-register main.panel-register {{
       position: relative;
-      width: min(100%, 580px);
-      padding: 38px 34px 32px;
-      border-radius: 32px;
+      width: min(100%, 540px);
+      padding: 34px 30px 28px;
+      border-radius: 34px;
       border: 1px solid rgba(255, 255, 255, 0.68);
-      background: rgba(255, 255, 255, 0.56);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.5));
       box-shadow:
-        0 28px 80px rgba(64, 116, 132, 0.18),
+        0 28px 80px rgba(64, 116, 132, 0.15),
         inset 0 1px 0 rgba(255, 255, 255, 0.72);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
@@ -777,12 +849,13 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
     }}
     body.theme-register input,
     body.theme-register textarea,
-    body.theme-register select {{
+    body.theme-register select,
+    body.theme-register .language-toggle {{
       border: 1px solid rgba(140, 176, 188, 0.6);
       background: rgba(255, 255, 255, 0.88);
       color: #163145;
-      border-radius: 16px;
-      padding: 14px 16px;
+      border-radius: 14px;
+      padding: 13px 16px;
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
       transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
     }}
@@ -793,16 +866,14 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
     body.theme-register input:focus,
     body.theme-register textarea:focus,
     body.theme-register select:focus,
+    body.theme-register .language-toggle:focus,
     body.theme-register .button:focus {{
       outline: none;
       border-color: #2d9aa0;
       box-shadow: 0 0 0 4px rgba(45, 154, 160, 0.14);
     }}
-    body.theme-register select {{
-      min-height: 188px;
-    }}
     body.theme-register textarea {{
-      min-height: 120px;
+      min-height: 108px;
       resize: vertical;
     }}
     body.theme-register .error {{
@@ -878,13 +949,117 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       color: #4e6f81;
       font-size: 13px;
     }}
+    .sr-only {{
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }}
+    .language-select {{
+      position: relative;
+    }}
+    .language-toggle {{
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      cursor: pointer;
+      font: inherit;
+      text-align: left;
+    }}
+    .language-summary {{
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #557081;
+    }}
+    .language-widget.has-selection .language-summary {{
+      color: #163145;
+    }}
+    .language-caret {{
+      width: 10px;
+      height: 10px;
+      border-right: 2px solid #6f8797;
+      border-bottom: 2px solid #6f8797;
+      transform: rotate(45deg) translateY(-2px);
+      transition: transform 0.2s ease;
+      flex: 0 0 auto;
+      margin-right: 4px;
+    }}
+    .language-widget.is-open .language-caret {{
+      transform: rotate(-135deg) translateY(-1px);
+    }}
+    .language-menu {{
+      position: absolute;
+      inset: calc(100% + 10px) 0 auto;
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(140, 176, 188, 0.45);
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 24px 44px rgba(55, 102, 117, 0.16);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: none;
+      z-index: 20;
+    }}
+    .language-widget.is-open .language-menu {{
+      display: block;
+    }}
+    .language-grid {{
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      max-height: 252px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }}
+    .language-option {{
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 44px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: #f6fbfc;
+      border: 1px solid rgba(185, 213, 220, 0.7);
+      cursor: pointer;
+      color: #163145;
+      font-size: 14px;
+    }}
+    .language-option input {{
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      flex: 0 0 auto;
+      accent-color: #2d9aa0;
+      box-shadow: none;
+      padding: 0;
+    }}
+    .language-option span {{
+      line-height: 1.2;
+    }}
+    .language-meta {{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-top: 10px;
+      color: #5c7a8b;
+      font-size: 12px;
+    }}
     @media (max-width: 640px) {{
       body {{
         padding: 14px;
       }}
       body.theme-register main.panel-register {{
         width: 100%;
-        padding: 28px 18px 24px;
+        padding: 24px 16px 22px;
         border-radius: 24px;
       }}
       .register-hero {{
@@ -895,8 +1070,9 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
         height: 52px;
         flex-basis: 52px;
       }}
-      body.theme-register select {{
-        min-height: 172px;
+      .language-grid {{
+        grid-template-columns: 1fr;
+        max-height: 224px;
       }}
       .button-row {{
         flex-direction: column;
@@ -908,7 +1084,7 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       }}
     }}
     /* FAQ section can be added here later. */
-  </style>
+  </style>{register_script}
 </head>
 <body class="{body_class}">
   <main class="{main_class}">
@@ -1270,20 +1446,55 @@ def _render_language_select(
 ) -> str:
     error_html = f'<div class="error">{escape(error)}</div>' if error else ""
     helper_html = f'<div class="helper">{escape(helper_text)}</div>' if helper_text else ""
-    selected_languages = {
-        language.strip().casefold() for language in selected_value.split(",") if language.strip()
-    }
+    selected_languages = [
+        language.strip() for language in selected_value.split(",") if language.strip()
+    ]
+    selected_language_keys = {language.casefold() for language in selected_languages}
     option_html = "".join(
-        f'<option value="{escape(language, quote=True)}"{" selected" if language.casefold() in selected_languages else ""}>{escape(language)}</option>'
+        f'<option value="{escape(language, quote=True)}"{" selected" if language.casefold() in selected_language_keys else ""}>{escape(language)}</option>'
         for language in language_options
     )
+    checkbox_html = "".join(
+        f"""
+    <label class="language-option">
+      <input type="checkbox" value="{escape(language, quote=True)}" data-language-option{" checked" if language.casefold() in selected_language_keys else ""}>
+      <span>{escape(language)}</span>
+    </label>"""
+        for language in language_options
+    )
+    summary_text = (
+        escape(", ".join(selected_languages[:2]) + (f" +{len(selected_languages) - 2}" if len(selected_languages) > 2 else ""))
+        if selected_languages
+        else "Select languages"
+    )
+    counter_text = (
+        f"{len(selected_languages)} of 4 selected"
+        if selected_languages
+        else "Choose up to 4 working languages."
+    )
+    selected_class = " has-selection" if selected_languages else ""
     return f"""
-<div class="block">
+<div class="block language-select">
   <label class="label" for="working_languages">Working languages</label>
   {helper_html}
-  <select id="working_languages" name="working_languages" multiple size="8">
-    {option_html}
-  </select>
+  <div class="language-widget{selected_class}" data-language-widget data-max-selection="4">
+    <button class="language-toggle" type="button" data-language-toggle aria-haspopup="listbox" aria-expanded="false">
+      <span class="language-summary" data-language-summary>{summary_text}</span>
+      <span class="language-caret" aria-hidden="true"></span>
+    </button>
+    <div class="language-menu" data-language-menu>
+      <div class="language-grid">
+        {checkbox_html}
+      </div>
+      <div class="language-meta">
+        <span data-language-counter>{escape(counter_text)}</span>
+        <span>Maximum 4</span>
+      </div>
+    </div>
+    <select id="working_languages" class="sr-only" name="working_languages" multiple size="8" aria-hidden="true" tabindex="-1">
+      {option_html}
+    </select>
+  </div>
   {error_html}
 </div>
 """
