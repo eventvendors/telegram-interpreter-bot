@@ -1021,7 +1021,7 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
     }}
     .phone-group {{
       display: grid;
-      grid-template-columns: 168px minmax(0, 1fr);
+      grid-template-columns: 220px minmax(0, 1fr);
       gap: 10px;
       align-items: stretch;
     }}
@@ -1030,6 +1030,10 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       min-height: 44px;
       height: 44px;
       align-self: center;
+    }}
+    .phone-group select {{
+      font-size: 15px;
+      padding-right: 36px;
     }}
     .language-toggle {{
       width: 100%;
