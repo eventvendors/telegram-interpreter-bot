@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import base64
+from functools import lru_cache
 from hashlib import sha256
 from html import escape
 from http.cookies import SimpleCookie
+from pathlib import Path
 import re
 from urllib.parse import parse_qs
 from wsgiref.simple_server import make_server
@@ -39,6 +42,7 @@ PHONE_COUNTRY_CODE_OPTIONS = [
     ("+81", "Japan (+81)"),
     ("+84", "Vietnam (+84)"),
 ]
+ASSETS_DIR = Path(__file__).resolve().parent.parent / "assets"
 
 
 def create_web_app(settings: Settings):
@@ -438,6 +442,16 @@ def _split_phone_number(phone_number: str) -> tuple[str, str]:
     return PHONE_COUNTRY_CODE_OPTIONS[0][0], stripped
 
 
+@lru_cache(maxsize=None)
+def _asset_data_url(filename: str) -> str:
+    path = ASSETS_DIR / filename
+    if not path.exists():
+        return ""
+    mime_type = "image/png" if path.suffix.lower() == ".png" else "application/octet-stream"
+    encoded = base64.b64encode(path.read_bytes()).decode("ascii")
+    return f"data:{mime_type};base64,{encoded}"
+
+
 def _available_language_options(directory_repository: SqliteDirectoryRepository) -> list[str]:
     unique_languages = {
         language
@@ -492,6 +506,7 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
     main_width = "1200px" if wide else "620px"
     body_class = "theme-register" if theme == "register" else "theme-default"
     main_class = "panel-register" if theme == "register" else "panel-default"
+    skyline_background = _asset_data_url("dubai-morning-skyline.png") if theme == "register" else ""
     register_script = """
   <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -840,10 +855,12 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       color-scheme: light;
       color: #163145;
       background:
-        radial-gradient(circle at 50% 6%, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0) 22%),
-        radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0) 28%),
-        radial-gradient(circle at 90% 18%, rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0) 22%),
-        linear-gradient(180deg, #eaf7fb 0%, #dbeff4 44%, #eef8fb 100%);
+        linear-gradient(180deg, rgba(237, 248, 251, 0.4), rgba(225, 241, 246, 0.46)),
+        radial-gradient(circle at 50% 8%, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0) 24%),
+        url("{skyline_background}");
+      background-position: center center, center top, center center;
+      background-size: cover, auto, cover;
+      background-repeat: no-repeat;
       position: relative;
       overflow-x: hidden;
     }}
@@ -855,22 +872,20 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       pointer-events: none;
     }}
     body.theme-register::before {{
-      height: 35vh;
-      opacity: 0.88;
+      inset: 0;
+      height: auto;
+      opacity: 1;
       background:
-        linear-gradient(180deg, rgba(255,255,255,0), rgba(206,232,238,0.12)),
-        url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 420'><defs><linearGradient id='sky' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='%2385afba' stop-opacity='0.54'/><stop offset='1' stop-color='%2385afba' stop-opacity='0.08'/></linearGradient><linearGradient id='burj' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='%23779daa' stop-opacity='0.72'/><stop offset='1' stop-color='%23779daa' stop-opacity='0.08'/></linearGradient></defs><g fill='url(%23sky)'><path d='M0 420v-52h24v52z'/><path d='M36 420v-84h14v84z'/><path d='M62 420v-62h38v62z'/><path d='M112 420v-110h20v110z'/><path d='M146 420v-164h56v164z'/><path d='M214 420v-102h16v102z'/><path d='M242 420v-188h72v188z'/><path d='M328 420v-96h14v96z'/><path d='M354 420v-158h74v158z'/><path d='M442 420v-118h20v118z'/><path d='M474 420v-144h54v144z'/><path d='M540 420v-92h16v92z'/><path d='M958 420v-88h18v88z'/><path d='M988 420v-122h54v122z'/><path d='M1056 420v-88h16v88z'/><path d='M1086 420v-180h70v180z'/><path d='M1170 420v-108h18v108z'/><path d='M1200 420v-144h58v144z'/><path d='M1272 420v-88h16v88z'/><path d='M1300 420v-126h46v126z'/><path d='M1360 420v-96h18v96z'/><path d='M1390 420v-170h74v170z'/><path d='M1478 420v-88h24v88z'/><path d='M1514 420v-54h16v54z'/></g><path fill='url(%23burj)' d='M1246 420V196h12v-28h10v-30h8v-34h6V74h4V50h3V32h2V20h2v12h3v18h4v24h6v30h8v34h10v30h12v252z'/><path fill='url(%23sky)' d='M1212 420V246h16v174z'/><path fill='url(%23sky)' d='M1232 420V222h12v198z'/><path fill='url(%23sky)' d='M1280 420V244h14v176z'/><g fill='%23ffffff' opacity='0.16'><rect x='242' y='248' width='72' height='6'/><rect x='354' y='278' width='74' height='6'/><rect x='1086' y='256' width='70' height='6'/><rect x='1390' y='266' width='74' height='6'/><rect x='1242' y='178' width='34' height='4'/></g></svg>");
-      background-repeat: no-repeat, no-repeat;
-      background-position: center bottom, center bottom;
-      background-size: cover, 100% auto;
+        linear-gradient(180deg, rgba(255,255,255,0.34), rgba(255,255,255,0.06) 24%, rgba(225,241,246,0.12) 60%, rgba(226,241,246,0.28) 100%),
+        radial-gradient(circle at 50% 12%, rgba(255,255,255,0.4), rgba(255,255,255,0) 28%);
     }}
     body.theme-register::after {{
-      height: 20vh;
+      height: 16vh;
       background:
-        linear-gradient(180deg, rgba(255,255,255,0), rgba(201,228,235,0.28) 40%, rgba(214,238,243,0.56)),
+        linear-gradient(180deg, rgba(255,255,255,0), rgba(201,228,235,0.14) 40%, rgba(214,238,243,0.28)),
         linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0) 28%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0) 72%, rgba(255,255,255,0.04)),
         repeating-linear-gradient(180deg, rgba(255,255,255,0.11) 0 2px, rgba(255,255,255,0) 2px 12px);
-      opacity: 0.32;
+      opacity: 0.18;
     }}
     body.theme-register main.panel-register {{
       position: relative;
@@ -975,20 +990,13 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       text-align: center;
     }}
     .register-badge {{
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 52px;
-      height: 52px;
-      border-radius: 50%;
-      background: linear-gradient(180deg, rgba(220, 243, 246, 0.95), rgba(202, 233, 238, 0.78));
-      color: #1f7d8d;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
-      flex: 0 0 52px;
-    }}
-    .register-badge svg {{
-      width: 24px;
-      height: 24px;
+      display: block;
+      width: 132px;
+      max-width: 42%;
+      height: auto;
+      border-radius: 18px;
+      object-fit: contain;
+      filter: drop-shadow(0 10px 18px rgba(22, 49, 69, 0.08));
     }}
     .register-title-group {{
       min-width: 0;
@@ -1139,9 +1147,9 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
         gap: 12px;
       }}
       .register-badge {{
-        width: 52px;
-        height: 52px;
-        flex-basis: 52px;
+        width: 108px;
+        max-width: 56%;
+        height: auto;
       }}
       .language-grid {{
         grid-template-columns: 1fr;
@@ -1177,6 +1185,7 @@ def _render_register_page(
 ) -> str:
     errors = errors or {}
     language_options = language_options or []
+    logo_data_url = _asset_data_url("translator-finder-bot-logo.png")
     default_country_code, default_local_number = _split_phone_number("")
     form_values = form_values or {
         "full_name": "",
@@ -1193,14 +1202,7 @@ def _render_register_page(
         form_values.setdefault("phone_local_number", derived_local_number)
     body = f"""
 <div class="register-hero">
-  <div class="register-badge" aria-hidden="true">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" role="presentation">
-      <circle cx="8" cy="8" r="3.2"></circle>
-      <circle cx="16.5" cy="9.5" r="2.6"></circle>
-      <path d="M3.5 18.2c.9-2.5 3.2-4 5.9-4 2.6 0 4.8 1.4 5.7 3.8"></path>
-      <path d="M14.2 17.3c.7-1.8 2.2-2.9 4-2.9 1.1 0 2.1.4 2.9 1.1"></path>
-    </svg>
-  </div>
+  <img class="register-badge" src="{logo_data_url}" alt="UAE Translator Finder logo">
   <div class="register-title-group">
     <h1>UAE Translator Finder</h1>
     <p class="register-subtitle">List your profile for free. Get discovered by clients and agencies.</p>
