@@ -1025,6 +1025,12 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       gap: 10px;
       align-items: stretch;
     }}
+    .phone-group select,
+    .phone-group input {{
+      min-height: 44px;
+      height: 44px;
+      align-self: center;
+    }}
     .language-toggle {{
       width: 100%;
       display: flex;
