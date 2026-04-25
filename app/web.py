@@ -647,12 +647,12 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       border-collapse: collapse;
     }}
     th, td {{
-      padding: 8px 10px;
+      padding: 5px 8px;
       border-bottom: 1px solid #22344b;
       vertical-align: top;
       text-align: left;
-      font-size: 13px;
-      line-height: 1.35;
+      font-size: 12px;
+      line-height: 1.2;
       word-break: break-word;
     }}
     th {{
@@ -699,7 +699,7 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
     }}
     .row-actions button {{
       width: 100%;
-      padding: 8px 10px;
+      padding: 6px 8px;
       border: 0;
       border-radius: 8px;
       cursor: pointer;
