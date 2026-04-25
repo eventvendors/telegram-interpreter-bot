@@ -21,6 +21,24 @@ REGISTRATION_LANGUAGE_OPTIONS = [
     "Urdu",
     "Uzbek",
 ]
+PHONE_COUNTRY_CODE_OPTIONS = [
+    ("+971", "UAE (+971)"),
+    ("+966", "Saudi Arabia (+966)"),
+    ("+965", "Kuwait (+965)"),
+    ("+973", "Bahrain (+973)"),
+    ("+974", "Qatar (+974)"),
+    ("+968", "Oman (+968)"),
+    ("+20", "Egypt (+20)"),
+    ("+44", "UK (+44)"),
+    ("+1", "USA/Canada (+1)"),
+    ("+33", "France (+33)"),
+    ("+49", "Germany (+49)"),
+    ("+34", "Spain (+34)"),
+    ("+7", "Russia/Kazakhstan (+7)"),
+    ("+91", "India (+91)"),
+    ("+81", "Japan (+81)"),
+    ("+84", "Vietnam (+84)"),
+]
 
 
 def create_web_app(settings: Settings):
@@ -292,7 +310,7 @@ def _parse_submission(
     language_options: list[str],
 ) -> tuple[dict[str, str], dict[str, str]]:
     payload = _parse_form_body(environ)
-    return _parse_directory_form(payload, language_options)
+    return _parse_registration_form(payload, language_options)
 
 
 def _parse_directory_form(
@@ -307,6 +325,40 @@ def _parse_directory_form(
         "short_bio": _first_value(payload, "short_bio"),
     }
     return _validate_directory_values(values, language_options)
+
+
+def _parse_registration_form(
+    payload: dict[str, list[str]],
+    language_options: list[str],
+) -> tuple[dict[str, str], dict[str, str]]:
+    country_code = _first_value(payload, "phone_country_code") or PHONE_COUNTRY_CODE_OPTIONS[0][0]
+    local_number = _first_value(payload, "phone_local_number")
+    if country_code not in {code for code, _ in PHONE_COUNTRY_CODE_OPTIONS}:
+        country_code = PHONE_COUNTRY_CODE_OPTIONS[0][0]
+    combined_phone = f"{country_code} {local_number}".strip() if local_number else ""
+    values = {
+        "full_name": _first_value(payload, "full_name"),
+        "working_languages": _normalize_language_selection(payload),
+        "phone_country_code": country_code,
+        "phone_local_number": local_number,
+        "phone_number": combined_phone,
+        "email_address": _first_value(payload, "email_address"),
+        "short_bio": _first_value(payload, "short_bio"),
+    }
+    validated_values, errors = _validate_directory_values(
+        {
+            "full_name": values["full_name"],
+            "working_languages": values["working_languages"],
+            "phone_number": values["phone_number"],
+            "email_address": values["email_address"],
+            "short_bio": values["short_bio"],
+        },
+        language_options,
+    )
+    values.update(validated_values)
+    if not local_number:
+        errors["phone_number"] = "This field is required."
+    return values, errors
 
 
 def _validate_directory_values(
@@ -372,6 +424,18 @@ def _normalize_language_selection(payload: dict[str, list[str]]) -> str:
         seen.add(normalized)
         unique.append(language)
     return ", ".join(unique)
+
+
+def _split_phone_number(phone_number: str) -> tuple[str, str]:
+    stripped = phone_number.strip()
+    if not stripped:
+        return PHONE_COUNTRY_CODE_OPTIONS[0][0], ""
+    for code, _label in PHONE_COUNTRY_CODE_OPTIONS:
+        if stripped == code:
+            return code, ""
+        if stripped.startswith(code + " "):
+            return code, stripped[len(code) + 1 :].strip()
+    return PHONE_COUNTRY_CODE_OPTIONS[0][0], stripped
 
 
 def _available_language_options(directory_repository: SqliteDirectoryRepository) -> list[str]:
@@ -955,6 +1019,12 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
     .language-select {{
       position: relative;
     }}
+    .phone-group {{
+      display: grid;
+      grid-template-columns: 168px minmax(0, 1fr);
+      gap: 10px;
+      align-items: stretch;
+    }}
     .language-toggle {{
       width: 100%;
       display: flex;
@@ -1067,6 +1137,9 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
         grid-template-columns: 1fr;
         max-height: 224px;
       }}
+      .phone-group {{
+        grid-template-columns: 1fr;
+      }}
       .button-row {{
         flex-direction: column;
       }}
@@ -1094,13 +1167,20 @@ def _render_register_page(
 ) -> str:
     errors = errors or {}
     language_options = language_options or []
+    default_country_code, default_local_number = _split_phone_number("")
     form_values = form_values or {
         "full_name": "",
         "working_languages": "",
+        "phone_country_code": default_country_code,
+        "phone_local_number": default_local_number,
         "phone_number": "",
         "email_address": "",
         "short_bio": "",
     }
+    if "phone_country_code" not in form_values or "phone_local_number" not in form_values:
+        derived_country_code, derived_local_number = _split_phone_number(form_values.get("phone_number", ""))
+        form_values.setdefault("phone_country_code", derived_country_code)
+        form_values.setdefault("phone_local_number", derived_local_number)
     body = f"""
 <div class="register-hero">
   <div class="register-badge" aria-hidden="true">
@@ -1119,7 +1199,7 @@ def _render_register_page(
 <form method="post" action="/register">
   {_render_input("Full name", "full_name", form_values["full_name"], errors.get("full_name"), maxlength=30)}
   {_render_language_select(form_values["working_languages"], errors.get("working_languages"), language_options, helper_text="Choose up to 3 working languages.")}
-  {_render_input("Phone number", "phone_number", form_values["phone_number"], errors.get("phone_number"), input_type="tel", maxlength=20)}
+  {_render_phone_input(form_values["phone_country_code"], form_values["phone_local_number"], errors.get("phone_number"))}
   {_render_input("Email address", "email_address", form_values["email_address"], errors.get("email_address"), input_type="email", maxlength=50)}
   {_render_textarea("Short bio / tag line", "short_bio", form_values["short_bio"], errors.get("short_bio"), placeholder="Maximum 100 characters.", maxlength=100)}
   <button class="button" type="submit">Register now</button>
@@ -1426,6 +1506,30 @@ def _render_textarea(
   <label class="label" for="{escape(name)}">{escape(label)}</label>
   <textarea id="{escape(name)}" name="{escape(name)}" placeholder="{escape(placeholder, quote=True)}"{maxlength_attr}>{escape(value)}</textarea>
   {helper_html}
+  {error_html}
+</div>
+"""
+
+
+def _render_phone_input(
+    selected_country_code: str,
+    local_number: str,
+    error: str | None,
+) -> str:
+    error_html = f'<div class="error">{escape(error)}</div>' if error else ""
+    options_html = "".join(
+        f'<option value="{escape(code, quote=True)}"{" selected" if code == selected_country_code else ""}>{escape(label)}</option>'
+        for code, label in PHONE_COUNTRY_CODE_OPTIONS
+    )
+    return f"""
+<div class="block">
+  <label class="label" for="phone_local_number">Phone number</label>
+  <div class="phone-group">
+    <select id="phone_country_code" name="phone_country_code" aria-label="Country code">
+      {options_html}
+    </select>
+    <input id="phone_local_number" name="phone_local_number" type="tel" value="{escape(local_number, quote=True)}" placeholder="50 123 4567" maxlength="20">
+  </div>
   {error_html}
 </div>
 """
