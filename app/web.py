@@ -264,6 +264,7 @@ PHONE_COUNTRY_CODE_OPTIONS = [
     ("+260", "Zambia (+260)"),
     ("+263", "Zimbabwe (+263)"),
 ]
+DEFAULT_PHONE_COUNTRY_CODE = "+971"
 ASSETS_DIR = Path(__file__).resolve().parent.parent / "assets"
 
 
@@ -557,10 +558,10 @@ def _parse_registration_form(
     payload: dict[str, list[str]],
     language_options: list[str],
 ) -> tuple[dict[str, str], dict[str, str]]:
-    country_code = _first_value(payload, "phone_country_code") or PHONE_COUNTRY_CODE_OPTIONS[0][0]
+    country_code = _first_value(payload, "phone_country_code") or DEFAULT_PHONE_COUNTRY_CODE
     local_number = _first_value(payload, "phone_local_number")
     if country_code not in {code for code, _ in PHONE_COUNTRY_CODE_OPTIONS}:
-        country_code = PHONE_COUNTRY_CODE_OPTIONS[0][0]
+        country_code = DEFAULT_PHONE_COUNTRY_CODE
     combined_phone = f"{country_code} {local_number}".strip() if local_number else ""
     values = {
         "full_name": _first_value(payload, "full_name"),
@@ -655,13 +656,13 @@ def _normalize_language_selection(payload: dict[str, list[str]]) -> str:
 def _split_phone_number(phone_number: str) -> tuple[str, str]:
     stripped = phone_number.strip()
     if not stripped:
-        return PHONE_COUNTRY_CODE_OPTIONS[0][0], ""
+        return DEFAULT_PHONE_COUNTRY_CODE, ""
     for code, _label in PHONE_COUNTRY_CODE_OPTIONS:
         if stripped == code:
             return code, ""
         if stripped.startswith(code + " "):
             return code, stripped[len(code) + 1 :].strip()
-    return PHONE_COUNTRY_CODE_OPTIONS[0][0], stripped
+    return DEFAULT_PHONE_COUNTRY_CODE, stripped
 
 
 @lru_cache(maxsize=None)
