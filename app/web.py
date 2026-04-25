@@ -328,8 +328,8 @@ def _validate_directory_values(
         selected_languages = [language.strip() for language in values["working_languages"].split(",")]
         if not selected_languages or any(not language for language in selected_languages):
             errors["working_languages"] = "Select at least one language."
-        elif len(selected_languages) > 4:
-            errors["working_languages"] = "Maximum 4 languages."
+        elif len(selected_languages) > 3:
+            errors["working_languages"] = "Maximum 3 languages."
         elif any(language.casefold() not in allowed_languages for language in selected_languages):
             errors["working_languages"] = "Select languages from the dropdown only."
 
@@ -904,9 +904,11 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
     }}
     .register-hero {{
       display: flex;
-      align-items: flex-start;
+      flex-direction: column;
+      align-items: center;
       gap: 14px;
       margin-bottom: 12px;
+      text-align: center;
     }}
     .register-badge {{
       display: inline-flex;
@@ -926,16 +928,12 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
     }}
     .register-title-group {{
       min-width: 0;
+      text-align: center;
     }}
     .register-subtitle {{
       margin: 0 0 6px;
       color: #36576b;
       font-size: 16px;
-    }}
-    .register-helper {{
-      margin: 0;
-      color: #5d7d8d;
-      font-size: 14px;
     }}
     .register-footer-note {{
       margin: 10px 4px 0;
@@ -1115,15 +1113,15 @@ def _render_register_page(
   </div>
   <div class="register-title-group">
     <h1>UAE Translator Finder</h1>
-    <p class="register-subtitle">Get listed in a simple UAE directory for translators and interpreters.</p>
+    <p class="register-subtitle">List your profile for free. Get discovered by clients and agencies.</p>
   </div>
 </div>
 <form method="post" action="/register">
   {_render_input("Full name", "full_name", form_values["full_name"], errors.get("full_name"), maxlength=30)}
-  {_render_language_select(form_values["working_languages"], errors.get("working_languages"), language_options, helper_text="Choose up to 4 working languages.")}
+  {_render_language_select(form_values["working_languages"], errors.get("working_languages"), language_options, helper_text="Choose up to 3 working languages.")}
   {_render_input("Phone number", "phone_number", form_values["phone_number"], errors.get("phone_number"), input_type="tel", maxlength=20)}
   {_render_input("Email address", "email_address", form_values["email_address"], errors.get("email_address"), input_type="email", maxlength=50)}
-  {_render_textarea("Short bio / tag line", "short_bio", form_values["short_bio"], errors.get("short_bio"), placeholder="Maximum 100 characters.", maxlength=100, helper_text="Maximum 100 characters.")}
+  {_render_textarea("Short bio / tag line", "short_bio", form_values["short_bio"], errors.get("short_bio"), placeholder="Maximum 100 characters.", maxlength=100)}
   <button class="button" type="submit">Register now</button>
 </form>
 <div class="register-footer-note">Submissions are reviewed before publication.</div>
@@ -1463,16 +1461,16 @@ def _render_language_select(
         else "Select languages"
     )
     counter_text = (
-        f"{len(selected_languages)} of 4 selected"
+        f"{len(selected_languages)} of 3 selected"
         if selected_languages
-        else "Choose up to 4 working languages."
+        else "Choose up to 3 working languages."
     )
     selected_class = " has-selection" if selected_languages else ""
     return f"""
 <div class="block language-select">
   <label class="label" for="working_languages">Working languages</label>
   {helper_html}
-  <div class="language-widget{selected_class}" data-language-widget data-max-selection="4">
+  <div class="language-widget{selected_class}" data-language-widget data-max-selection="3">
     <button class="language-toggle" type="button" data-language-toggle aria-haspopup="listbox" aria-expanded="false">
       <span class="language-summary" data-language-summary>{summary_text}</span>
       <span class="language-caret" aria-hidden="true"></span>
@@ -1483,7 +1481,7 @@ def _render_language_select(
       </div>
       <div class="language-meta">
         <span data-language-counter>{escape(counter_text)}</span>
-        <span>Maximum 4</span>
+        <span>Maximum 3</span>
       </div>
     </div>
     <select id="working_languages" class="sr-only" name="working_languages" multiple size="8" aria-hidden="true" tabindex="-1">

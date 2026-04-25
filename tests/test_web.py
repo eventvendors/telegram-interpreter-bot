@@ -58,7 +58,7 @@ class WebValidationTests(unittest.TestCase):
             ["Arabic", "English", "Russian", "French", "Hindi"],
         )
 
-        self.assertEqual(errors["working_languages"], "Maximum 4 languages.")
+        self.assertEqual(errors["working_languages"], "Maximum 3 languages.")
 
     def test_available_language_options_include_extra_registration_languages(self) -> None:
         unique = uuid.uuid4().hex
