@@ -776,8 +776,10 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       color-scheme: light;
       color: #163145;
       background:
-        radial-gradient(circle at 50% 14%, rgba(255, 255, 255, 0.97), rgba(255, 255, 255, 0) 28%),
-        linear-gradient(180deg, #eef8fb 0%, #d9edf1 48%, #eff8fb 100%);
+        radial-gradient(circle at 50% 6%, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0) 22%),
+        radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0) 28%),
+        radial-gradient(circle at 90% 18%, rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0) 22%),
+        linear-gradient(180deg, #eaf7fb 0%, #dbeff4 44%, #eef8fb 100%);
       position: relative;
       overflow-x: hidden;
     }}
@@ -789,53 +791,40 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       pointer-events: none;
     }}
     body.theme-register::before {{
-      height: 42vh;
-      opacity: 0.5;
+      height: 38vh;
+      opacity: 0.9;
       background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(172, 209, 218, 0.5)),
-        linear-gradient(90deg,
-          transparent 0 10%,
-          rgba(110, 156, 171, 0.18) 10% 10.9%,
-          transparent 10.9% 19%,
-          rgba(110, 156, 171, 0.14) 19% 20.8%,
-          transparent 20.8% 30%,
-          rgba(110, 156, 171, 0.24) 30% 31.2%,
-          transparent 31.2% 44%,
-          rgba(110, 156, 171, 0.11) 44% 45.5%,
-          transparent 45.5% 61%,
-          rgba(110, 156, 171, 0.17) 61% 62.2%,
-          transparent 62.2% 75%,
-          rgba(110, 156, 171, 0.12) 75% 77.2%,
-          transparent 77.2% 88%,
-          rgba(110, 156, 171, 0.22) 88% 89.1%,
-          transparent 87.5% 100%);
-      clip-path: polygon(0 100%, 0 69%, 7% 69%, 7% 54%, 10% 54%, 10% 63%, 15% 63%, 15% 43%, 19% 43%, 19% 61%, 26% 61%, 26% 38%, 30% 38%, 30% 61%, 41% 61%, 41% 49%, 43% 49%, 43% 60%, 57% 60%, 57% 34%, 60.5% 34%, 60.5% 61%, 72% 61%, 72% 46%, 76% 46%, 76% 61%, 86% 61%, 86% 18%, 88.5% 18%, 88.5% 61%, 100% 61%, 100% 100%);
+        linear-gradient(180deg, rgba(255,255,255,0), rgba(206,232,238,0.18)),
+        url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 520'><defs><linearGradient id='g' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='%2396bfc9' stop-opacity='0.55'/><stop offset='1' stop-color='%238db4bf' stop-opacity='0.16'/></linearGradient></defs><g fill='url(%23g)'><rect x='0' y='372' width='50' height='148' rx='3'/><rect x='56' y='340' width='28' height='180' rx='2'/><rect x='92' y='388' width='42' height='132' rx='3'/><rect x='146' y='316' width='18' height='204' rx='2'/><rect x='170' y='280' width='54' height='240' rx='3'/><rect x='232' y='352' width='62' height='168' rx='3'/><rect x='304' y='300' width='20' height='220' rx='2'/><rect x='332' y='328' width='88' height='192' rx='3'/><rect x='428' y='262' width='26' height='258' rx='2'/><rect x='462' y='214' width='88' height='306' rx='4'/><rect x='560' y='356' width='42' height='164' rx='3'/><rect x='612' y='282' width='16' height='238' rx='2'/><rect x='636' y='312' width='54' height='208' rx='3'/><rect x='700' y='250' width='30' height='270' rx='3'/><rect x='736' y='164' width='92' height='356' rx='4'/><rect x='836' y='334' width='52' height='186' rx='3'/><rect x='896' y='296' width='18' height='224' rx='2'/><rect x='922' y='250' width='70' height='270' rx='3'/><rect x='1004' y='202' width='36' height='318' rx='3'/><rect x='1048' y='110' width='24' height='410' rx='3'/><polygon points='1060,8 1044,110 1076,110' fill='url(%23g)'/><rect x='1084' y='244' width='74' height='276' rx='3'/><rect x='1168' y='352' width='38' height='168' rx='3'/><rect x='1216' y='302' width='22' height='218' rx='2'/><rect x='1246' y='264' width='96' height='256' rx='4'/><rect x='1350' y='334' width='58' height='186' rx='3'/><rect x='1418' y='280' width='26' height='240' rx='3'/><rect x='1450' y='226' width='78' height='294' rx='4'/><rect x='1538' y='360' width='44' height='160' rx='3'/></g><g fill='%23ffffff' opacity='0.22'><rect x='171' y='297' width='54' height='8'/><rect x='463' y='227' width='87' height='9'/><rect x='737' y='177' width='91' height='10'/><rect x='1247' y='277' width='94' height='10'/><rect x='1451' y='239' width='77' height='10'/></g></svg>");
+      background-repeat: no-repeat, no-repeat;
+      background-position: center bottom, center bottom;
+      background-size: cover, cover;
     }}
     body.theme-register::after {{
-      height: 33vh;
+      height: 32vh;
       background:
-        linear-gradient(180deg, rgba(216, 238, 242, 0), rgba(207, 232, 236, 0.72)),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0));
-      transform: scaleY(-1);
-      opacity: 0.52;
+        linear-gradient(180deg, rgba(255,255,255,0), rgba(201,228,235,0.42) 42%, rgba(214,238,243,0.74)),
+        linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0) 28%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0) 72%, rgba(255,255,255,0.08)),
+        repeating-linear-gradient(180deg, rgba(255,255,255,0.16) 0 2px, rgba(255,255,255,0) 2px 10px);
+      opacity: 0.62;
     }}
     body.theme-register main.panel-register {{
       position: relative;
-      width: min(100%, 456px);
-      padding: 28px 26px 24px;
-      border-radius: 30px;
-      border: 1px solid rgba(255, 255, 255, 0.68);
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.54));
+      width: min(100%, 590px);
+      padding: 40px 34px 28px;
+      border-radius: 36px;
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      background: linear-gradient(180deg, rgba(255,255,255,0.7), rgba(255,255,255,0.58));
       box-shadow:
-        0 22px 58px rgba(64, 116, 132, 0.14),
+        0 30px 80px rgba(20, 70, 90, 0.18),
         inset 0 1px 0 rgba(255, 255, 255, 0.72);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
     }}
     body.theme-register h1 {{
-      margin-bottom: 6px;
+      margin-bottom: 8px;
       color: #163145;
-      font-size: clamp(22px, 4vw, 26px);
+      font-size: clamp(24px, 4vw, 28px);
       letter-spacing: -0.03em;
     }}
     body.theme-register .line {{
@@ -845,11 +834,11 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
     body.theme-register .label {{
       margin-bottom: 6px;
       color: #163145;
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 600;
     }}
     body.theme-register .block {{
-      margin-top: 16px;
+      margin-top: 18px;
     }}
     body.theme-register input,
     body.theme-register textarea,
@@ -858,8 +847,8 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       border: 1px solid rgba(140, 176, 188, 0.6);
       background: rgba(255, 255, 255, 0.88);
       color: #163145;
-      border-radius: 12px;
-      padding: 11px 14px;
+      border-radius: 14px;
+      padding: 15px 16px;
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
       transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
     }}
@@ -877,7 +866,7 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       box-shadow: 0 0 0 4px rgba(45, 154, 160, 0.14);
     }}
     body.theme-register textarea {{
-      min-height: 72px;
+      min-height: 92px;
       resize: vertical;
     }}
     body.theme-register .error {{
@@ -889,19 +878,19 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
     body.theme-register .button {{
       display: inline-block;
       width: 100%;
-      margin-top: 18px;
-      padding: 13px 18px;
+      margin-top: 22px;
+      padding: 16px 18px;
       border: 0;
-      border-radius: 10px;
+      border-radius: 16px;
       background: linear-gradient(135deg, #2e9fa2 0%, #237f8f 100%);
       color: #ffffff;
       text-align: center;
       font-weight: 700;
-      font-size: 15px;
+      font-size: 16px;
       letter-spacing: 0.01em;
       text-decoration: none;
       cursor: pointer;
-      box-shadow: 0 14px 28px rgba(35, 127, 143, 0.16);
+      box-shadow: 0 18px 36px rgba(35, 127, 143, 0.2);
       transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
     }}
     body.theme-register .button:hover {{
@@ -917,7 +906,7 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       display: flex;
       align-items: flex-start;
       gap: 14px;
-      margin-bottom: 6px;
+      margin-bottom: 12px;
     }}
     .register-badge {{
       display: inline-flex;
@@ -939,20 +928,20 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       min-width: 0;
     }}
     .register-subtitle {{
-      margin: 0 0 4px;
+      margin: 0 0 6px;
       color: #36576b;
-      font-size: 12px;
+      font-size: 16px;
     }}
     .register-helper {{
       margin: 0;
       color: #5d7d8d;
-      font-size: 12px;
+      font-size: 14px;
     }}
     .register-footer-note {{
-      margin: 10px 4px 0;
+      margin: 14px 4px 0;
       text-align: center;
       color: #4e6f81;
-      font-size: 12px;
+      font-size: 13px;
     }}
     .sr-only {{
       position: absolute;
@@ -977,7 +966,7 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       cursor: pointer;
       font: inherit;
       text-align: left;
-      min-height: 48px;
+      min-height: 56px;
     }}
     .language-summary {{
       overflow: hidden;
@@ -1004,8 +993,8 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
     .language-menu {{
       position: absolute;
       inset: calc(100% + 10px) 0 auto;
-      padding: 12px;
-      border-radius: 16px;
+      padding: 14px;
+      border-radius: 18px;
       border: 1px solid rgba(140, 176, 188, 0.45);
       background: rgba(255, 255, 255, 0.96);
       box-shadow: 0 24px 44px rgba(55, 102, 117, 0.16);
@@ -1020,8 +1009,8 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
     .language-grid {{
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-      max-height: 220px;
+      gap: 10px;
+      max-height: 240px;
       overflow-y: auto;
       padding-right: 4px;
     }}
@@ -1029,9 +1018,9 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       display: flex;
       align-items: center;
       gap: 8px;
-      min-height: 38px;
-      padding: 8px 10px;
-      border-radius: 12px;
+      min-height: 42px;
+      padding: 9px 12px;
+      border-radius: 14px;
       background: #f6fbfc;
       border: 1px solid rgba(185, 213, 220, 0.7);
       cursor: pointer;
@@ -1055,18 +1044,18 @@ def _render_page(title: str, body: str, wide: bool = False, theme: str = "defaul
       justify-content: space-between;
       align-items: center;
       gap: 12px;
-      margin-top: 8px;
+      margin-top: 10px;
       color: #5c7a8b;
       font-size: 12px;
     }}
     @media (max-width: 640px) {{
       body {{
-        padding: 14px;
+        padding: 12px;
       }}
       body.theme-register main.panel-register {{
         width: 100%;
-        padding: 22px 15px 20px;
-        border-radius: 24px;
+        padding: 28px 20px 22px;
+        border-radius: 28px;
       }}
       .register-hero {{
         gap: 12px;
